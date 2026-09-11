@@ -1,0 +1,14 @@
+{
+  "name": "first-gun-game",
+  "version": "0.1.0",
+  "description": "A small arena FPS built with vanilla JavaScript and three.js. No engine, no build step.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["fps", "shooter", "three.js", "game", "webgl", "javascript"],
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "dependencies": {}
+}

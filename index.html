@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Gun Game — v0.1.0</title>
+<meta name="description" content="A small arena FPS built with vanilla JavaScript and three.js.">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============================================================
+       3D VIEWPORT
+       ============================================================ -->
+  <canvas id="scene"></canvas>
+
+  <!-- ============================================================
+       HEADS-UP DISPLAY  (hidden until a run starts)
+       ============================================================ -->
+  <div id="hud" class="hidden">
+
+    <!-- Reticle -->
+    <div id="crosshair" aria-hidden="true">
+      <span class="ch-dot"></span>
+      <span class="ch-line ch-t"></span>
+      <span class="ch-line ch-r"></span>
+      <span class="ch-line ch-b"></span>
+      <span class="ch-line ch-l"></span>
+    </div>
+
+    <!-- Hit confirmation -->
+    <div id="hitmarker" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div id="hitmarker-kill" class="kill" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- Floating combat text (damage numbers) -->
+    <div id="damage-numbers" aria-hidden="true"></div>
+
+    <!-- Damage direction indicators -->
+    <div id="damage-arcs" aria-hidden="true"></div>
+
+    <!-- Low-health / damage vignette -->
+    <div id="vignette" aria-hidden="true"></div>
+
+    <!-- Top bar: wave status -->
+    <div id="wave-panel">
+      <div class="wave-label">WAVE</div>
+      <div id="wave-number">1</div>
+      <div id="wave-status">HOSTILES REMAINING <b id="enemies-left">0</b></div>
+      <div id="intermission" class="hidden">
+        <span id="intermission-text">NEXT WAVE IN 5</span>
+      </div>
+    </div>
+
+    <!-- Top-right: run stats -->
+    <div id="score-panel">
+      <div class="stat"><label>SCORE</label><span id="score">0</span></div>
+      <div class="stat"><label>KILLS</label><span id="kills">0</span></div>
+      <div class="stat"><label>ACCURACY</label><span id="accuracy">--</span></div>
+    </div>
+
+    <!-- Bottom-left: vitals -->
+    <div id="vitals">
+      <div class="bar-wrap">
+        <div class="bar-label"><span>HEALTH</span><span id="health-value">100</span></div>
+        <div class="bar"><div id="health-fill" class="fill health"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label"><span>ARMOR</span><span id="armor-value">0</span></div>
+        <div class="bar"><div id="armor-fill" class="fill armor"></div></div>
+      </div>
+    </div>
+
+    <!-- Bottom-right: weapon + ammo -->
+    <div id="weapon-panel">
+      <div id="weapon-name">AR-15 WORKHORSE</div>
+      <div id="ammo-line">
+        <span id="ammo-mag">30</span>
+        <span class="ammo-sep">/</span>
+        <span id="ammo-reserve">180</span>
+      </div>
+      <div id="ammo-pips"></div>
+      <div id="weapon-slots">
+        <div class="slot" data-slot="1"><b>1</b> RIFLE</div>
+        <div class="slot" data-slot="2"><b>2</b> SIDEARM</div>
+        <div class="slot" data-slot="3"><b>3</b> BREACHER</div>
+      </div>
+    </div>
+
+    <!-- Reload / weapon-switch prompt -->
+    <div id="prompt" class="hidden"></div>
+
+    <!-- Kill feed -->
+    <div id="killfeed"></div>
+
+    <!-- Wave banner -->
+    <div id="banner" class="hidden">
+      <div id="banner-title">WAVE 1</div>
+      <div id="banner-sub">SURVIVE</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MENUS
+       ============================================================ -->
+
+  <!-- Main menu -->
+  <div id="menu-main" class="screen">
+    <div class="panel">
+      <div class="logo">
+        <span class="logo-kicker">ARENA // FPS // v0.1.0</span>
+        <h1>FIRST&nbsp;GUN&nbsp;GAME</h1>
+        <div class="logo-rule"></div>
+      </div>
+      <p class="blurb">
+        A gray-box arena shooter. Endless waves, four hostile classes,
+        three weapons. Built with vanilla JavaScript and three.js —
+        no engine, no build step.
+      </p>
+      <button id="btn-start" class="btn primary">DEPLOY</button>
+      <div class="controls-grid">
+        <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</div>
+        <div><kbd>Mouse</kbd> Look / fire</div>
+        <div><kbd>Space</kbd> Jump</div>
+        <div><kbd>Shift</kbd> Sprint</div>
+        <div><kbd>R</kbd> Reload</div>
+        <div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Weapons</div>
+        <div><kbd>Wheel</kbd> Cycle weapon</div>
+        <div><kbd>Esc</kbd> Pause</div>
+      </div>
+      <div class="settings-row">
+        <label for="set-sens">Mouse sensitivity <b id="set-sens-value">1.00</b></label>
+        <input id="set-sens" type="range" min="20" max="300" value="100">
+      </div>
+      <div class="settings-row">
+        <label for="set-vol">Volume <b id="set-vol-value">70%</b></label>
+        <input id="set-vol" type="range" min="0" max="100" value="70">
+      </div>
+      <div class="footnote">
+        Click DEPLOY, then click the screen to lock your mouse.
+        <span id="best-score"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div id="menu-pause" class="screen hidden">
+    <div class="panel">
+      <h2>PAUSED</h2>
+      <div class="logo-rule"></div>
+      <button id="btn-resume" class="btn primary">RESUME</button>
+      <button id="btn-restart" class="btn">RESTART RUN</button>
+      <button id="btn-quit" class="btn">MAIN MENU</button>
+      <div class="footnote">Press <kbd>Esc</kbd> to resume.</div>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div id="menu-over" class="screen hidden">
+    <div class="panel">
+      <h2 class="over-title">YOU DIED</h2>
+      <div class="logo-rule"></div>
+      <div id="final-stats" class="final-stats"></div>
+      <button id="btn-again" class="btn primary">RUN IT BACK</button>
+      <button id="btn-menu" class="btn">MAIN MENU</button>
+    </div>
+  </div>
+
+  <!-- Pointer-lock nudge (shown when the browser releases the cursor) -->
+  <div id="click-to-lock" class="hidden">CLICK TO CAPTURE MOUSE</div>
+
+  <!-- Fatal error surface -->
+  <div id="fatal" class="hidden"><pre></pre></div>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

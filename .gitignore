@@ -1,0 +1,20 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Local dev
+.env
+*.local
+
+# The vendored engine is committed on purpose so the game runs offline.
+# Do NOT ignore /vendor.
