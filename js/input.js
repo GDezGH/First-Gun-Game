@@ -22,6 +22,9 @@ export class Input {
     this.onLook = () => {};
     this.onFireDown = () => {};
     this.onFireUp = () => {};
+    this.onAimDown = () => {};
+    this.onAimUp = () => {};
+    this.aimHeld = false;
     this.onCycleWeapon = () => {};
     this.onReload = () => {};
     this.onSlot = () => {};
@@ -51,6 +54,9 @@ export class Input {
         case 'Digit1': this.onSlot(0); break;
         case 'Digit2': this.onSlot(1); break;
         case 'Digit3': this.onSlot(2); break;
+        case 'Digit4': this.onSlot(3); break;
+        case 'Digit5': this.onSlot(4); break;
+        case 'Digit6': this.onSlot(5); break;
         case 'Escape': this.onPause(); break;
         default: break;
       }
@@ -64,18 +70,21 @@ export class Input {
       for (const k of Object.keys(this.keys)) this.keys[k] = false;
       for (const b of Object.keys(this.buttons)) this.buttons[b] = false;
       this.onFireUp();
+      this.aimHeld = false;
+      this.onAimUp();
     });
 
     // ---- mouse --------------------------------------------------------
     c.addEventListener('mousedown', (e) => {
       this.buttons[e.button] = true;
       if (e.button === 0) this.onFireDown();
-      // Right button is reserved for aim-down-sights in a later version.
+      if (e.button === 2) { this.aimHeld = true; this.onAimDown(); }
     });
 
     window.addEventListener('mouseup', (e) => {
       this.buttons[e.button] = false;
       if (e.button === 0) this.onFireUp();
+      if (e.button === 2) { this.aimHeld = false; this.onAimUp(); }
     });
 
     c.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -98,7 +107,10 @@ export class Input {
       if (!this.locked) {
         for (const k of Object.keys(this.keys)) this.keys[k] = false;
         this.buttons[0] = false;
+        this.buttons[2] = false;
         this.onFireUp();
+        this.aimHeld = false;
+        this.onAimUp();
       }
       this.onLockChange(this.locked);
     });
@@ -134,4 +146,5 @@ export class Input {
   }
 
   get firing() { return !!this.buttons[0]; }
+  get aiming() { return this.aimHeld; }
 }

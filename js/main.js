@@ -82,6 +82,7 @@ function boot() {
   );
   scene.add(camera);
 
+  const BASE_FOV = 78;
   const world = buildWorld(scene);
   const effects = new Effects(scene);
   const enemies = new EnemyManager(scene);
@@ -124,13 +125,18 @@ function boot() {
   // Input already applies the sensitivity multiplier; these are radians.
   input.onLook = (dx, dy) => {
     if (state.mode !== 'playing') return;
-    player.look(dx, dy);
+    // Aiming down sights scales sensitivity down for precision.
+    const m = weapons.getSensMult();
+    player.look(dx * m, dy * m);
   };
 
   input.onFireDown = () => {
-    if (state.mode === 'playing' && input.locked) state.wantFire = true;
+    if (state.mode === 'playing' && input.locked) weapons.pullTrigger(player, enemies);
   };
-  input.onFireUp = () => { state.wantFire = false; state.triggerHeld = false; };
+  input.onFireUp = () => { weapons.releaseTrigger(); };
+
+  input.onAimDown = () => { if (state.mode === 'playing') weapons.setAim(true); };
+  input.onAimUp = () => { weapons.setAim(false); };
 
   input.onReload = () => {
     if (state.mode === 'playing') weapons.startReload();
@@ -319,17 +325,17 @@ function boot() {
       return;
     }
 
-    // --- firing -----------------------------------------------------------
-    const def = weapons.def;
-    if (state.wantFire && player.alive) {
-      if (def.auto || !state.triggerHeld) {
-        if (weapons.canFire) {
-          state.triggerHeld = true;
-          handleFireResult(weapons.fire(player, enemies));
-        }
-      }
+    // --- firing: trigger intent is owned by the weapon manager ----------
+    move.speedMult = weapons.getMoveMult();
+    weapons.update(dt, player, move, enemies);
+    for (const r of weapons.drainResults()) handleFireResult(r);
+
+    // --- aim down sights: zoom the camera -------------------------------
+    const fov = weapons.getFov(BASE_FOV);
+    if (Math.abs(camera.fov - fov) > 0.01) {
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
     }
-    weapons.update(dt, player, move);
 
     // --- enemies ------------------------------------------------------------
     enemies.update(dt, player, world, effects, {
@@ -472,6 +478,7 @@ function boot() {
       hud.updateWeapon(weapons);
       hud.updateStats(state.score, state.kills, weapons.accuracy);
       hud.updateReticle(player, weapons);
+      hud.updateScope(weapons);
 
       // Context-sensitive prompts.
       if (weapons.isReloading) hud.prompt('RELOADING…');

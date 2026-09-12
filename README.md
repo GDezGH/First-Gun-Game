@@ -4,7 +4,7 @@ A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](http
 
 ![gameplay](docs/screenshot-gameplay.png)
 
-> **Status: v0.1.0 — first playable version, browser-verified.** Single-player wave survival. See [Testing](#testing) for the verification story and [Roadmap](#roadmap) for what is deliberately not here yet.
+> **Status: v0.2.0 — ADS, six weapons, detailed 3D gun models, browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
 
 ---
 
@@ -34,14 +34,24 @@ Change the port with `PORT=3000 node server.js`.
 | `1` `2` `3` | Rifle / Sidearm / Breacher |
 | Mouse wheel | Cycle weapon |
 | `Esc` | Pause |
+| Right mouse (hold) | Aim down sights |
 
 Click **DEPLOY**, then click the game once to capture the mouse.
 
 ---
 
-## What's in v0.1.0
+## What's in v0.2.0
 
-- **Three hitscan weapons** — rifle (full-auto), pistol, shotgun (9 pellets), each with its own damage, rate of fire, magazine, reload time, recoil pattern and spread behaviour.
+- **Six hitscan weapons, three fire modes** (auto / semi / 3-round burst), each with its
+  own damage, rpm, magazine, reload time, recoil pattern and spread:
+  `AR-15 WORKHORSE` (auto), `M9 SIDEARM` (semi), `SPAS BREACHER` (shotgun),
+  `VK-9 HORNET` SMG (1050 rpm auto), `M110 MARKSMAN` DMR (scoped semi, 70 dmg),
+  `MK-3 TRIAD` (3-round burst).
+- **Aim down sights** — hold right mouse to zoom (per-weapon FOV), tighten your spread,
+  drop sensitivity and slow your stride. Scoped weapons render a full circular scope
+  overlay with mildots.
+- **Detailed 3D viewmodels** — every gun is a distinct multi-part mesh (rails, scopes,
+  muzzle devices, pumps, stocks), built procedurally at boot. No model files.
 - **Recoil that recovers.** Camera kick is tracked separately from player aim so it settles smoothly instead of fighting your mouse input.
 - **Dynamic cone of fire.** Spread widens while moving and in the air; the reticle grows to match so you can read your own accuracy.
 - **Four enemy classes** — Grunt, Runner, Heavy, Marksman — each with its own health, speed, damage, engagement range and aim cone.

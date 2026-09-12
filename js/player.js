@@ -178,7 +178,8 @@ export class Player {
     if (this._wish.lengthSq() > 0) this._wish.normalize();
 
     const wantSprint = input.sprint && forward > 0 && this.grounded;
-    const targetSpeed = wantSprint ? P.SPRINT_SPEED : P.WALK_SPEED;
+    // Aiming down sights slows you (input.speedMult comes from the weapon).
+    const targetSpeed = (wantSprint ? P.SPRINT_SPEED : P.WALK_SPEED) * (input.speedMult ?? 1);
 
     // --- accelerate / friction --------------------------------------
     // Airborne momentum: if we are already travelling faster than the

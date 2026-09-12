@@ -183,6 +183,19 @@ class AudioEngine {
     } else if (kind === 'pistol') {
       this._burst({ dest: out, duration: 0.14, fromHz: 4600, toHz: 700, peak: 0.72, q: 1.1, delay: jitter });
       this._thump({ dest: out, duration: 0.13, fromHz: 220, toHz: 70, peak: 0.4, delay: jitter });
+    } else if (kind === 'smg') {
+      // Fast, dry, papery — distinct from the rifle's crack.
+      this._burst({ dest: out, duration: 0.07, fromHz: 5200, toHz: 1400, peak: 0.42, q: 1.6, delay: jitter });
+      this._thump({ dest: out, duration: 0.07, fromHz: 300, toHz: 110, peak: 0.2, delay: jitter });
+    } else if (kind === 'dmr') {
+      // Deep, long-range crack with a heavy tail.
+      this._burst({ dest: out, duration: 0.24, fromHz: 4200, toHz: 500, peak: 0.85, q: 1.0, delay: jitter });
+      this._thump({ dest: out, duration: 0.26, fromHz: 150, toHz: 40, peak: 0.85, delay: jitter });
+      this._burst({ dest: out, duration: 0.4, fromHz: 700, toHz: 150, peak: 0.18, q: 0.6, delay: jitter + 0.05 });
+    } else if (kind === 'burst') {
+      // Tight, bright pop.
+      this._burst({ dest: out, duration: 0.09, fromHz: 6800, toHz: 1200, peak: 0.5, q: 1.4, delay: jitter });
+      this._thump({ dest: out, duration: 0.09, fromHz: 280, toHz: 95, peak: 0.28, delay: jitter });
     } else {
       this._burst({ dest: out, duration: 0.11, fromHz: 6200, toHz: 900, peak: 0.6, q: 1.2, delay: jitter });
       this._thump({ dest: out, duration: 0.10, fromHz: 260, toHz: 85, peak: 0.32, delay: jitter });

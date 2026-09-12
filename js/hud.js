@@ -47,6 +47,7 @@ export class HUD {
       ammoPips: $('ammo-pips'),
       weaponSlots: $('weapon-slots'),
       prompt: $('prompt'),
+      scopeOverlay: $('scope-overlay'),
       killfeed: $('killfeed'),
       banner: $('banner'),
       bannerTitle: $('banner-title'),
@@ -57,6 +58,7 @@ export class HUD {
     this._last = {};
     this._screen = { x: 0, y: 0, z: 0 };
     this._pipCount = -1;
+    this._slotCount = -1;
     this._activeSlot = -1;
     this._vignetteCritical = false;
     this._hmTimer = null;
@@ -133,11 +135,34 @@ export class HUD {
       }
     }
 
+    // Weapon slot rail: rebuild whenever the weapon count changes.
+    if (this._slotCount !== weapons.slots.length) {
+      this._slotCount = weapons.slots.length;
+      this.el.weaponSlots.innerHTML = '';
+      weapons.slots.forEach((slot, i) => {
+        const d = document.createElement('div');
+        d.className = 'slot';
+        d.innerHTML = `<b>${i + 1}</b> ${slot.def.shortName}`;
+        this.el.weaponSlots.appendChild(d);
+      });
+      this._activeSlot = -1;
+    }
     if (this._activeSlot !== weapons.index) {
       this._activeSlot = weapons.index;
       [...this.el.weaponSlots.children].forEach((c, i) =>
         c.classList.toggle('active', i === weapons.index)
       );
+    }
+  }
+
+  /** Show the scope reticle when aimed with a scoped weapon; hide the normal
+   *  crosshair while scoped. */
+  updateScope(weapons) {
+    const scoped = weapons.def.scoped && weapons.ads > 0.5;
+    if (this._last.scoped !== scoped) {
+      this._last.scoped = scoped;
+      this.el.scopeOverlay.classList.toggle('visible', scoped);
+      this.el.crosshair.style.opacity = scoped ? '0' : '1';
     }
   }
 

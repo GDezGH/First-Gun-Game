@@ -79,10 +79,22 @@ export const GAME = {
 /**
  * Weapon table.
  *
- * spreadRads   – half-angle of the bullet cone while standing still.
- * moveSpread   – extra cone added at full sprint speed (radians).
- * recoil       – vertical kick in degrees; `recoilH` is random horizontal.
- * recovery     – how fast the camera settles back after a kick (1/s).
+ * spreadRads      – half-angle of the bullet cone while standing still.
+ * moveSpread      – extra cone added at full sprint speed (radians).
+ * recoil          – vertical kick in degrees; `recoilH` is random horizontal.
+ * recovery        – how fast the camera settles back after a kick (1/s).
+ *
+ * Fire modes (`mode`):
+ *   'auto'  – holds fire until released / empty.
+ *   'semi'  – one shot per trigger pull.
+ *   'burst' – fires `burstCount` rounds at `burstRpm` per trigger pull.
+ *
+ * Aiming down sights (right mouse, hold):
+ *   adsFov        – camera FOV while fully aimed (lower = more zoom).
+ *   adsSpreadMult – multiplier on spread while aimed (< 1 = tighter).
+ *   adsSensMult   – multiplier on mouse sensitivity while aimed.
+ *   adsMoveMult   – multiplier on move speed while aimed.
+ *   scoped        – true shows the circular scope overlay when aimed.
  */
 export const WEAPONS = [
   {
@@ -90,6 +102,7 @@ export const WEAPONS = [
     slot: 1,
     name: 'AR-15 WORKHORSE',
     shortName: 'RIFLE',
+    mode: 'auto',
     damage: 24,
     headshotMult: 2.4,
     rpm: 660,
@@ -105,16 +118,21 @@ export const WEAPONS = [
     recoilH: 0.28,
     recovery: 9,
     range: 220,
-    penetration: 0,           // future use: shoot through thin cover
     shake: GAME.SHAKE.RIFLE_FIRE,
     color: 0xffd27a,
     sfx: 'rifle',
+    adsFov: 55,
+    adsSpreadMult: 0.45,
+    adsSensMult: 0.7,
+    adsMoveMult: 0.6,
+    scoped: false,
   },
   {
     id: 'pistol',
     slot: 2,
     name: 'M9 SIDEARM',
     shortName: 'SIDEARM',
+    mode: 'semi',
     damage: 21,
     headshotMult: 2.8,
     rpm: 460,
@@ -130,16 +148,21 @@ export const WEAPONS = [
     recoilH: 0.4,
     recovery: 11,
     range: 160,
-    penetration: 0,
     shake: 0.09,
     color: 0xffe6b0,
     sfx: 'pistol',
+    adsFov: 62,
+    adsSpreadMult: 0.5,
+    adsSensMult: 0.8,
+    adsMoveMult: 0.85,
+    scoped: false,
   },
   {
     id: 'shotgun',
     slot: 3,
     name: 'SPAS BREACHER',
     shortName: 'BREACHER',
+    mode: 'semi',
     damage: 15,                 // per pellet
     headshotMult: 1.8,
     rpm: 85,
@@ -155,10 +178,106 @@ export const WEAPONS = [
     recoilH: 0.9,
     recovery: 5.5,
     range: 60,
-    penetration: 0,
     shake: GAME.SHAKE.SHOTGUN_FIRE,
     color: 0xffb15c,
     sfx: 'shotgun',
+    adsFov: 66,
+    adsSpreadMult: 0.8,
+    adsSensMult: 0.85,
+    adsMoveMult: 0.6,
+    scoped: false,
+  },
+  {
+    id: 'smg',
+    slot: 4,
+    name: 'VK-9 HORNET',
+    shortName: 'SMG',
+    mode: 'auto',
+    damage: 13,
+    headshotMult: 2.2,
+    rpm: 1050,                  // shreds up close, falls off at range
+    auto: true,
+    pellets: 1,
+    magSize: 40,
+    reserveMax: 280,
+    startingReserve: 160,
+    reloadTime: 1.7,
+    spreadRads: 0.020,
+    moveSpread: 0.022,          // stays usable while mobile
+    recoil: 0.5,
+    recoilH: 0.55,              // buzzy horizontal climb
+    recovery: 10,
+    range: 120,
+    shake: 0.04,
+    color: 0xffe08a,
+    sfx: 'smg',
+    adsFov: 58,
+    adsSpreadMult: 0.4,
+    adsSensMult: 0.75,
+    adsMoveMult: 0.75,
+    scoped: false,
+  },
+  {
+    id: 'dmr',
+    slot: 5,
+    name: 'M110 MARKSMAN',
+    shortName: 'DMR',
+    mode: 'semi',
+    damage: 70,
+    headshotMult: 2.6,
+    rpm: 210,
+    auto: false,
+    pellets: 1,
+    magSize: 10,
+    reserveMax: 60,
+    startingReserve: 40,
+    reloadTime: 2.3,
+    spreadRads: 0.004,
+    moveSpread: 0.05,           // punishing if you shoot on the move
+    recoil: 2.2,
+    recoilH: 0.3,
+    recovery: 7,
+    range: 400,
+    shake: 0.16,
+    color: 0xcfe8ff,
+    sfx: 'dmr',
+    adsFov: 22,                 // big scope zoom
+    adsSpreadMult: 0.12,        // laser-beam when aimed
+    adsSensMult: 0.35,
+    adsMoveMult: 0.45,
+    scoped: true,
+  },
+  {
+    id: 'burst',
+    slot: 6,
+    name: 'MK-3 TRIAD',
+    shortName: 'BURST',
+    mode: 'burst',
+    burstCount: 3,
+    burstRpm: 1100,             // rate INSIDE the burst
+    damage: 20,
+    headshotMult: 2.4,
+    rpm: 660,                   // governs time between bursts
+    auto: false,
+    pellets: 1,
+    magSize: 30,
+    reserveMax: 240,
+    startingReserve: 120,
+    reloadTime: 1.9,
+    spreadRads: 0.008,
+    moveSpread: 0.026,
+    recoil: 0.6,
+    recoilH: 0.2,
+    recovery: 9.5,
+    range: 200,
+    shake: 0.05,
+    color: 0xb6ffd2,
+    sfx: 'burst',
+    adsFov: 52,
+    adsSpreadMult: 0.35,
+    adsSensMult: 0.7,
+    adsMoveMult: 0.6,
+    scoped: false,
   },
 ];
 
