@@ -15,6 +15,8 @@ export const GAME = {
 
   ARENA_RADIUS: 46,           // half-size of the playable floor
   GRAVITY: 26,
+  /** No scattered cover may generate within this radius of PLAYER.SPAWN. */
+  SPAWN_CLEARANCE: 8,
 
   PLAYER: {
     EYE_HEIGHT: 1.68,
@@ -34,7 +36,9 @@ export const GAME = {
     /** Health regeneration kicks in after this many seconds without damage. */
     REGEN_DELAY: 5.0,
     REGEN_RATE: 7.0,          // hp / second
-    SPAWN: { x: 0, z: 0 },
+    // Open lane south of the centre platform. (0,0) is INSIDE the platform
+    // box, which used to eject the player onto its roof on spawn.
+    SPAWN: { x: 0, z: -14 },
   },
 
   /** Sensitivity is multiplied by this when converting mouse deltas to radians. */

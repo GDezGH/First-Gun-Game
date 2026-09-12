@@ -61,6 +61,7 @@ export class Player {
     this._eye = new THREE.Vector3();
     this._dir = new THREE.Vector3();
     this._wish = new THREE.Vector3();
+    this._desired = new THREE.Vector3();
   }
 
   reset() {
@@ -73,9 +74,16 @@ export class Player {
     this.health = P.MAX_HEALTH;
     this.armor = 0;
     this.alive = true;
-    this.grounded = false;
     this.shakeAmp = 0;
     this.fireKick = 0;
+    this.landImpact = 0;
+
+    // The spawn point is on flat ground, so start grounded. Leaving this
+    // false meant coyoteTime was still 0 on the first frame and the player
+    // could not jump until gravity had re-detected the floor.
+    this.grounded = true;
+    this.wasGrounded = true;
+    this.coyoteTime = 0.12;
   }
 
   get eyeHeight() { return P.EYE_HEIGHT; }
@@ -173,13 +181,24 @@ export class Player {
     const targetSpeed = wantSprint ? P.SPRINT_SPEED : P.WALK_SPEED;
 
     // --- accelerate / friction --------------------------------------
+    // Airborne momentum: if we are already travelling faster than the
+    // current target (e.g. we sprint-jumped), hold that speed instead of
+    // bleeding back down to walk speed. In the air you steer, you do not
+    // brake -- otherwise jumping while sprinting silently kills momentum.
+    const flatSpeed = Math.hypot(this.vel.x, this.vel.z);
+    const desiredSpeed = (!this.grounded && flatSpeed > targetSpeed) ? flatSpeed : targetSpeed;
+
     const accel = this.grounded ? P.ACCEL_GROUND : P.ACCEL_AIR;
-    const desired = this._wish.multiplyScalar(targetSpeed);
+    // NOTE: copy before scaling. multiplyScalar() mutates in place, and
+    // _wish is read again below for the friction test.
+    const desired = this._desired.copy(this._wish).multiplyScalar(desiredSpeed);
+    const hasInput = this._wish.lengthSq() > 0;
 
-    this.vel.x += (desired.x - this.vel.x) * Math.min(1, accel * dt / Math.max(targetSpeed, 1));
-    this.vel.z += (desired.z - this.vel.z) * Math.min(1, accel * dt / Math.max(targetSpeed, 1));
+    const k = Math.min(1, accel * dt / Math.max(targetSpeed, 1));
+    this.vel.x += (desired.x - this.vel.x) * k;
+    this.vel.z += (desired.z - this.vel.z) * k;
 
-    if (this.grounded && this._wish.lengthSq() === 0) {
+    if (this.grounded && !hasInput) {
       const drop = Math.max(this.vel.length(), P.WALK_SPEED) * P.FRICTION_GROUND * dt;
       const len = this.vel.length();
       if (len > 0) {
@@ -233,11 +252,12 @@ export class Player {
     }
 
     // --- head bob + footsteps -------------------------------------------
-    const flatSpeed = Math.hypot(this.vel.x, this.vel.z);
-    if (this.grounded && flatSpeed > 0.6) {
-      const rate = wantSprint ? 13 : 9;
+    // Recomputed AFTER integration: this is the speed we actually achieved.
+    const travelSpeed = Math.hypot(this.vel.x, this.vel.z);
+    if (this.grounded && travelSpeed > 0.6) {
+      const rate = input.sprint ? 13 : 9;
       this.bobPhase += dt * rate;
-      this.stepAccum += flatSpeed * dt;
+      this.stepAccum += travelSpeed * dt;
       if (this.stepAccum > 2.3) {
         this.stepAccum = 0;
         audio.footstep();
@@ -254,7 +274,7 @@ export class Player {
     const shakeY = Math.sin(this.shakeTime * 1.31 + 1.1) * 0.02 * s;
     const shakeR = Math.sin(this.shakeTime * 2.13 + 2.2) * 0.026 * s;
 
-    const bobAmount = this.grounded ? Math.min(flatSpeed / P.SPRINT_SPEED, 1) : 0;
+    const bobAmount = this.grounded ? Math.min(travelSpeed / P.SPRINT_SPEED, 1) : 0;
     const bobY = Math.sin(this.bobPhase * 2) * 0.045 * bobAmount;
     const bobX = Math.cos(this.bobPhase) * 0.035 * bobAmount;
 

@@ -211,10 +211,15 @@ export function buildWorld(scene) {
   // ------------------------------------------------------------------
   const rng = makeRng(0xc0ffee);
   const placed = [];
+  const SX = GAME.PLAYER.SPAWN.x;
+  const SZ = GAME.PLAYER.SPAWN.z;
   const overlaps = (x, z, r) =>
     placed.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < (p.r + r) ** 2) ||
     Math.abs(x) < 11 && Math.abs(z) < 11 ||          // keep the centre clear
-    Math.abs(x) > R - 4 || Math.abs(z) > R - 4;      // keep off the walls
+    Math.abs(x) > R - 4 || Math.abs(z) > R - 4 ||    // keep off the walls
+    // Keep the player spawn clear. Without this a 3 m crate stack used to
+    // generate 2.8 m in front of the spawn, so you started facing a wall.
+    (x - SX) ** 2 + (z - SZ) ** 2 < GAME.SPAWN_CLEARANCE ** 2;
 
   let guard = 0;
   while (placed.length < 46 && guard++ < 900) {
@@ -241,9 +246,12 @@ export function buildWorld(scene) {
   // ------------------------------------------------------------------
   // Lighting
   // ------------------------------------------------------------------
-  scene.add(new THREE.HemisphereLight(0x9fb6d8, 0x2a2620, 0.55));
+  // Base illumination was 0.55 -- under ACES tone mapping that read almost
+  // pitch black against the walls. Bumped so the arena is readable at a
+  // glance; enemies were disappearing into the shadow side.
+  scene.add(new THREE.HemisphereLight(0xaec4e4, 0x33302a, 1.15));
 
-  const sun = new THREE.DirectionalLight(0xffd9b0, 1.55);
+  const sun = new THREE.DirectionalLight(0xffd9b0, 2.3);
   sun.position.set(38, 55, 24);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -258,13 +266,13 @@ export function buildWorld(scene) {
   scene.add(sun);
 
   // Cool fill from the opposite side so shadows are readable, not black.
-  const fill = new THREE.DirectionalLight(0x6f8fc0, 0.35);
+  const fill = new THREE.DirectionalLight(0x6f8fc0, 0.75);
   fill.position.set(-30, 22, -26);
   scene.add(fill);
 
   // Warm practicals over the centre platform.
   [[0, 0]].forEach(([x, z]) => {
-    const p = new THREE.PointLight(0xffb870, 60, 44, 2);
+    const p = new THREE.PointLight(0xffb870, 110, 48, 2);
     p.position.set(x, 7.0, z);
     scene.add(p);
   });

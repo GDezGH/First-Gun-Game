@@ -5,10 +5,24 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "node tests/play.test.js",
+    "test:server": "node server.js"
   },
-  "keywords": ["fps", "shooter", "three.js", "game", "webgl", "javascript"],
+  "keywords": [
+    "fps",
+    "shooter",
+    "three.js",
+    "game",
+    "webgl",
+    "javascript"
+  ],
   "license": "MIT",
-  "engines": { "node": ">=18" },
-  "dependencies": {}
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "puppeteer": "^23.0.0"
+  }
 }

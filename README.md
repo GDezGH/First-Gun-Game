@@ -2,7 +2,9 @@
 
 A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](https://threejs.org) — **no game engine, no build step, no asset files**. Clone it, run one command, play.
 
-> **Status: v0.1.0 — first playable version.** Single-player wave survival. See [Roadmap](#roadmap) for what is deliberately not here yet.
+![gameplay](docs/screenshot-gameplay.png)
+
+> **Status: v0.1.0 — first playable version, browser-verified.** Single-player wave survival. See [Testing](#testing) for the verification story and [Roadmap](#roadmap) for what is deliberately not here yet.
 
 ---
 
@@ -117,27 +119,33 @@ __fgg.enemies.aliveCount
 
 ---
 
-## Testing — read this before trusting the code
+## Testing
 
-**What has been verified:**
+The game ships with a real, browser-driven test suite: **`tests/play.test.js`**.
 
-- ✅ All 13 ES modules pass `node --check` (syntax).
-- ✅ The dev server serves every asset with `200` and the correct `Content-Type` (`text/javascript` for `.js` — browsers refuse to execute a module served as `text/plain`).
-- ✅ `404` handling and path-traversal protection behave correctly.
+It launches headless Chromium and runs two phases:
 
-**What has NOT been verified:**
+- **Integration** — the actual render loop runs; asserts the game boots, renders,
+  throws nothing, and 404s nothing.
+- **Logic** — the render loop is frozen and `step(1/120)` is driven by hand so the
+  simulation runs at true speed even on software WebGL. Covers movement, sprint,
+  jump, collision, weapon switch, reload, full-auto vs semi-auto, body/headshot
+  damage, kills & score, cover blocking bullets, wave director, enemy fire,
+  pickups, armor math, death and restart.
 
-- ❌ **The game has not been run in a real browser.** A Puppeteer test harness exists at `.verify/play.test.js` in the dev sandbox but Chromium would not launch there (missing `libnss3.so`), so it never executed.
-
-**Before you build on this, run it yourself:**
+Run it:
 
 ```bash
-node server.js   # then open http://localhost:8080 and open DevTools -> Console
+npm install          # dev-only; installs Puppeteer + Chromium. The GAME itself
+                     # still has zero runtime dependencies.
+node server.js &     # in another terminal
+npm test             # 43 assertions
 ```
 
-If anything throws, the console will show it immediately. That first manual playthrough is the outstanding work item on this repo.
+As of v0.1.0 the suite reports **43 passed, 0 failed**.
 
----
+Screenshots from the suite: [docs/screenshot-menu.png](docs/screenshot-menu.png),
+[docs/screenshot-gameplay.png](docs/screenshot-gameplay.png).
 
 ## Roadmap
 
