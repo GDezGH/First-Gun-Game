@@ -353,9 +353,9 @@ export class WeaponManager {
     const slot = this.current;
     const def = slot.def;
 
-    if (slot.mag <= 0) { audio.dryFire(); return; }
+    if (!this.infiniteAmmo && slot.mag <= 0) { audio.dryFire(); return; }
 
-    slot.mag--;
+    if (!this.infiniteAmmo) slot.mag--;
     this.shotsFired++;
 
     // Cone: base + movement, tightened by how far we are aimed.

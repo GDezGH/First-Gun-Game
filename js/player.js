@@ -28,6 +28,10 @@ export class Player {
 
     this.yaw = 0;
     this.pitch = 0;
+    // Smoothed view (what the camera renders); may lag the raw aim slightly.
+    this.viewYaw = 0;
+    this.viewPitch = 0;
+    this.travelSpeed = 0;
 
     // Recoil is tracked separately from the player's aim so it can recover
     // smoothly without fighting mouse input.
@@ -64,13 +68,17 @@ export class Player {
     this._desired = new THREE.Vector3();
   }
 
-  reset() {
-    this.pos.set(P.SPAWN.x, 0, P.SPAWN.z);
+  reset(spawn = P.SPAWN) {
+    this.pos.set(spawn.x, 0, spawn.z);
     this.vel.set(0, 0, 0);
     this.yaw = 0;
     this.pitch = 0;
+    this.viewYaw = 0;
+    this.viewPitch = 0;
+    this.travelSpeed = 0;
     this.recoilPitch = 0;
     this.recoilYaw = 0;
+    this.godMode = false;
     this.health = P.MAX_HEALTH;
     this.armor = 0;
     this.alive = true;
@@ -134,7 +142,7 @@ export class Player {
    * @returns {number} health actually lost (0 if armor absorbed everything)
    */
   damage(amount, now, sourcePos) {
-    if (!this.alive) return 0;
+    if (!this.alive || this.godMode) return 0;
 
     let toArmor = 0;
     if (this.armor > 0) {
@@ -255,6 +263,7 @@ export class Player {
     // --- head bob + footsteps -------------------------------------------
     // Recomputed AFTER integration: this is the speed we actually achieved.
     const travelSpeed = Math.hypot(this.vel.x, this.vel.z);
+    this.travelSpeed = travelSpeed;
     if (this.grounded && travelSpeed > 0.6) {
       const rate = input.sprint ? 13 : 9;
       this.bobPhase += dt * rate;
@@ -267,7 +276,31 @@ export class Player {
       this.bobPhase += dt * 1.5;
     }
 
-    // --- write to camera ---------------------------------------------------
+    return this.alive;
+  }
+
+  /**
+   * Write the camera transform. Called ONCE per rendered frame with the real
+   * frame delta, NOT from the fixed-timestep sim, so mouse look and shake are
+   * frame-rate independent and feel smooth even when the sim is catching up.
+   *
+   * `viewYaw`/`viewPitch` optionally ease toward the raw aim to soften
+   * jittery input (see GAME.VIEW.smoothing).
+   */
+  applyCamera(dt) {
+    const cam = this.camera;
+
+    // View smoothing: 0 = raw 1:1, higher eases the view for a softer feel.
+    if (GAME.VIEW.smoothing > 0) {
+      const rate = GAME.VIEW.smoothRate;
+      this.viewYaw = damp(this.viewYaw, this.yaw, rate, dt);
+      this.viewPitch = damp(this.viewPitch, this.pitch, rate, dt);
+    } else {
+      this.viewYaw = this.yaw;
+      this.viewPitch = this.pitch;
+    }
+
+    // Shake decays on render time so its frequency is fps-independent.
     this.shakeAmp = Math.max(0, this.shakeAmp - GAME.SHAKE.DECAY * dt * this.shakeAmp - dt * 0.4);
     this.shakeTime += dt * 40;
     const s = this.shakeAmp;
@@ -275,23 +308,21 @@ export class Player {
     const shakeY = Math.sin(this.shakeTime * 1.31 + 1.1) * 0.02 * s;
     const shakeR = Math.sin(this.shakeTime * 2.13 + 2.2) * 0.026 * s;
 
-    const bobAmount = this.grounded ? Math.min(travelSpeed / P.SPRINT_SPEED, 1) : 0;
-    const bobY = Math.sin(this.bobPhase * 2) * 0.045 * bobAmount;
-    const bobX = Math.cos(this.bobPhase) * 0.035 * bobAmount;
+    const bobAmount = this.grounded ? Math.min(this.travelSpeed / P.SPRINT_SPEED, 1) : 0;
+    const bobY = Math.sin(this.bobPhase * 2) * 0.045 * bobAmount * GAME.VIEW.bobScale;
+    const bobX = Math.cos(this.bobPhase) * 0.035 * bobAmount * GAME.VIEW.bobScale;
 
-    this.camera.position.set(
-      this.pos.x + Math.cos(this.yaw) * bobX,
+    cam.position.set(
+      this.pos.x + Math.cos(this.viewYaw) * bobX,
       this.pos.y + P.EYE_HEIGHT + bobY,
-      this.pos.z - Math.sin(this.yaw) * bobX
+      this.pos.z - Math.sin(this.viewYaw) * bobX
     );
-    this.camera.rotation.set(
-      this.pitch + this.recoilPitch + shakeP,
-      this.yaw + this.recoilYaw + shakeY,
+    cam.rotation.set(
+      this.viewPitch + this.recoilPitch + shakeP,
+      this.viewYaw + this.recoilYaw + shakeY,
       shakeR + Math.cos(this.bobPhase) * 0.004 * bobAmount,
       'YXZ'
     );
-
-    return this.alive;
   }
 
   // ------------------------------------------------------------------

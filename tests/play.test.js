@@ -17,8 +17,6 @@
 
 const puppeteer = require('puppeteer');
 const URL = process.env.URL || 'http://127.0.0.1:8080/';
-const os = require('os');
-const path = require('path');
 
 let passed = 0, failed = 0;
 const results = [];
@@ -79,7 +77,7 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     weapons: window.__fgg.weapons.slots.length,
   }));
   check('arena built with solid geometry', geo.colliders > 40, `${geo.colliders} colliders`);
-  check('three weapons loaded', geo.weapons === 3);
+  check('six weapons loaded', geo.weapons === 6, `${geo.weapons} slots`);
   check('spawn points generated', geo.spawnPoints > 20, `${geo.spawnPoints}`);
 
   await page.click('#btn-start');
@@ -133,6 +131,14 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
         for (const [k, v] of Object.entries(keys)) g.input.keys[k] = v;
         for (let i = 0; i < n; i++) g.step(1 / 120);
         for (const k of Object.keys(keys)) delete g.input.keys[k];
+        return g;
+      },
+      /** Hold the trigger for n ticks of the current weapon. */
+      fire(n) {
+        const g = window.__fgg;
+        g.weapons.pullTrigger(g.player, g.enemies);
+        for (let i = 0; i < n; i++) g.step(1 / 120);
+        g.weapons.releaseTrigger();
         return g;
       },
       /** A throwaway grunt with no behaviour, placed at (x, y, z). */
@@ -267,10 +273,8 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
   const fire = await page.evaluate(() => {
     const t = window.__t; t.reset();
     const g = window.__fgg;
-    g.state.wantFire = true;
     const mag0 = g.weapons.current.mag;
-    t.run(120);                                        // 1 s of full-auto
-    g.state.wantFire = false;
+    t.fire(120);                                       // 1 s of full-auto
     return { spent: mag0 - g.weapons.current.mag, shots: g.weapons.shotsFired };
   });
   // 660 rpm for ~0.9 s of the second (first shot is immediate) => ~10 rounds
@@ -281,12 +285,65 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     const t = window.__t; t.reset();
     const g = window.__fgg;
     g.weapons.switchTo(1); t.run(90);                  // pistol = semi-auto
-    g.state.wantFire = true;
-    t.run(120);                                        // hold the trigger a full second
-    g.state.wantFire = false;
+    t.fire(120);                                       // hold the trigger a full second
     return g.weapons.shotsFired;
   });
   check('semi-auto fires once per trigger pull', semi === 1, `${semi} shots`);
+
+  // ---- fire modes & ADS --------------------------------------------------
+  const burst = await page.evaluate(() => {
+    const t = window.__t; t.reset();
+    const g = window.__fgg;
+    g.weapons.switchTo(5); t.run(90);              // MK-3 TRIAD = burst (index 5)
+    g.weapons.pullTrigger(g.player, g.enemies);
+    t.run(2);                                      // pull released almost immediately
+    g.weapons.releaseTrigger();
+    t.run(60);                                     // let the burst finish on its own
+    return { shots: g.weapons.shotsFired, id: g.weapons.def.id };
+  });
+  check('burst mode fires exactly 3 rounds per pull', burst.shots === 3 && burst.id === 'burst',
+    `${burst.shots} shots (${burst.id})`);
+
+  const smg = await page.evaluate(() => {
+    const t = window.__t; t.reset();
+    const g = window.__fgg;
+    g.weapons.switchTo(3); t.run(90);              // VK-9 HORNET (index 3)
+    g.weapons.pullTrigger(g.player, g.enemies);
+    t.run(120);                                    // 1 s of full auto at 1050 rpm
+    g.weapons.releaseTrigger();
+    return g.weapons.shotsFired;
+  });
+  check('SMG full-auto approaches its high rate of fire', smg > 12, `${smg} shots in 1s`);
+
+  const ads = await page.evaluate(() => {
+    const t = window.__t; t.reset();
+    const g = window.__fgg;
+    g.weapons.switchTo(4); t.run(90);              // M110 MARKSMAN (index 4)
+    const fovHip = g.weapons.getFov(78);
+    g.weapons.setAim(true);
+    t.run(120);                                    // 1 s to ease ADS in
+    const adsVal = g.weapons.ads;
+    const fovAds = g.weapons.getFov(78);
+    const sens = g.weapons.getSensMult();
+    return { fovHip, fovAds, adsVal, sens, scoped: g.weapons.def.scoped };
+  });
+  check('holding aim eases ADS in and zooms the FOV',
+    ads.adsVal > 0.9 && ads.fovAds < ads.fovHip - 20,
+    `fov ${fmt(ads.fovHip)} -> ${fmt(ads.fovAds)}, ads=${fmt(ads.adsVal)}`);
+  check('ADS lowers sensitivity for precision', ads.sens < 0.6, `sens x${fmt(ads.sens)}`);
+  check('DMR is flagged scoped (scope overlay shows)', ads.scoped === true);
+
+  const dmrDmg = await page.evaluate(() => {
+    const t = window.__t; t.reset();
+    const g = window.__fgg;
+    g.weapons.switchTo(4); t.run(90);
+    const e = window.__t.dummy(0, g.player.pos.y + 0.77, g.player.pos.z - 4, 200);
+    g.weapons.setAim(true); t.run(120);            // aim to tighten spread
+    g.weapons.pullTrigger(g.player, g.enemies);
+    t.run(2); g.weapons.releaseTrigger();
+    return { hp: e.health };
+  });
+  check('DMR body shot deals 70 damage', near(200 - dmrDmg.hp, 70, 0.01), `${200 - dmrDmg.hp}`);
 
   // ---- hit detection ---------------------------------------------------
   const dmg = await page.evaluate(() => {
@@ -294,15 +351,16 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     const g = window.__fgg;
     // Head: enemy feet level with the player -> a horizontal ray crosses the
     // head sphere (centre 1.59, r 0.27) at eye height 1.68.
+    const shootOnce = () => { g.weapons.cooldown = 0; t.fire(1); };
     const head = window.__t.dummy(0, g.player.pos.y, g.player.pos.z - 4);
     const hpHead0 = head.health;
-    g.weapons.cooldown = 0; g.weapons.fire(g.player, g.enemies);
+    shootOnce();
     const headDmg = hpHead0 - head.health;
 
     // Body: raise the enemy so its torso centre sits exactly at eye height.
     const body = window.__t.dummy(0, g.player.pos.y + 0.77, g.player.pos.z - 4);
     const hpBody0 = body.health;
-    g.weapons.cooldown = 0; g.weapons.fire(g.player, g.enemies);
+    shootOnce();
     const bodyDmg = hpBody0 - body.health;
 
     return { headDmg, bodyDmg, ratio: headDmg / bodyDmg };
@@ -316,10 +374,10 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     const t = window.__t; t.reset();
     const g = window.__fgg;
     const e = window.__t.dummy(0, g.player.pos.y + 0.77, g.player.pos.z - 4, 40);
-    g.state.wantFire = true;
+    g.weapons.pullTrigger(g.player, g.enemies);
     let n = 0;
     while (e.alive && n++ < 30) t.run(6);              // fire through step()
-    g.state.wantFire = false;
+    g.weapons.releaseTrigger();
     return { alive: e.alive, kills: g.state.kills, score: g.state.score, shots: n };
   });
   check('an enemy can be killed through the real fire path', !kill.alive, `${kill.shots} pulls`);
@@ -333,7 +391,7 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     const behind = window.__t.dummy(0, 0, -26);
     const hp0 = behind.health;
     g.player.pos.set(0, 0, -14); g.player.yaw = 0; g.player.pitch = 0;
-    g.state.wantFire = true; t.run(60); g.state.wantFire = false;
+    t.fire(60);
     return { delta: hp0 - behind.health };
   });
   check('cover blocks bullets (wall between shooter and target)',
@@ -451,12 +509,60 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     restart.mode === 'playing' && restart.health === 100 && restart.score === 0
       && restart.mag === 30 && restart.enemies === 0, JSON.stringify(restart));
 
+  // ---- v0.3.0: multi-map, dev range, camera smoothing -----------------------
+  const maps = await page.evaluate(() => {
+    const g = window.__fgg;
+    const res = {};
+    for (const m of g.MAPS) {
+      try { g.loadMap(m.id); res[m.id] = g.world.colliders.length > 0 && g.world.mapId === m.id; }
+      catch (e) { res[m.id] = 'THREW ' + e.message; }
+    }
+    return res;
+  });
+  check('all five maps build without error',
+    Object.values(maps).every((v) => v === true), JSON.stringify(maps));
+
+  const cam = await page.evaluate(() => {
+    const g = window.__fgg;
+    g.loadMap('arena'); g.player.reset();
+    g.player.yaw = 1.0; g.player.viewYaw = 0;
+    for (let i = 0; i < 10; i++) g.player.applyCamera(1 / 60);
+    return g.player.viewYaw;
+  });
+  check('camera view eases toward the raw aim (smoothing)',
+    cam > 0.5 && cam < 1.0, `${cam.toFixed(3)}`);
+
+  const dev = await page.evaluate(() => {
+    const g = window.__fgg;
+    g.state.mapId = 'dev'; g.startRun();
+    const dummies = g.enemies.list.filter((e) => e.type.passive).length;
+    const h0 = g.player.health;
+    g.player.damage(50, g.state.time, g.player.pos);
+    const godBlocks = g.player.health === h0;
+    g.weapons.cooldown = 0;
+    const m0 = g.weapons.current.mag;
+    g.weapons._shootOnce(g.player, g.enemies);
+    const ammoHeld = g.weapons.current.mag === m0;
+    const d = g.enemies.list.find((e) => e.type.passive);
+    const killed = g.enemies.damage(d, 9999, false, d.pos, null);
+    return {
+      devMode: g.state.devMode, dummies, godBlocks,
+      infAmmo: g.weapons.infiniteAmmo, ammoHeld,
+      dummySurvives: d.alive && killed === false,
+    };
+  });
+  check('dev range enables dev mode with passive dummies',
+    dev.devMode && dev.dummies >= 5, JSON.stringify(dev));
+  check('dev god mode blocks incoming damage', dev.godBlocks, JSON.stringify(dev));
+  check('dev infinite ammo does not consume rounds', dev.infAmmo && dev.ammoHeld, JSON.stringify(dev));
+  check('dev dummies absorb damage but never die', dev.dummySurvives, JSON.stringify(dev));
+
   // ---- hygiene ---------------------------------------------------------------
   check('no uncaught page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
   check('no console errors', consoleErrors.length === 0, consoleErrors.slice(0, 2).join(' | '));
   check('no 404 responses', notFound.length === 0, notFound.join(', '));
 
-  await page.screenshot({ path: process.env.SHOT || path.join(os.tmpdir(), 'fgg-last-run.png') });
+  await page.screenshot({ path: '/home/user/.verify/gameplay.png' });
   await browser.close();
 
   console.log('\nFirst Gun Game — browser test suite\n' + '='.repeat(60));

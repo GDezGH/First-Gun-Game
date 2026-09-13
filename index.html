@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>First Gun Game — v0.1.0</title>
+<title>First Gun Game — v0.3.0</title>
 <meta name="description" content="A small arena FPS built with vanilla JavaScript and three.js.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230a0c0f'/><rect x='3' y='7' width='10' height='3' fill='%23ff8c1a'/><rect x='9' y='4' width='3' height='3' fill='%23ff8c1a'/></svg>">
 <link rel="stylesheet" href="./css/style.css">
@@ -100,6 +100,9 @@
         <div class="slot" data-slot="1"><b>1</b> RIFLE</div>
         <div class="slot" data-slot="2"><b>2</b> SIDEARM</div>
         <div class="slot" data-slot="3"><b>3</b> BREACHER</div>
+        <div class="slot" data-slot="4"><b>4</b> SMG</div>
+        <div class="slot" data-slot="5"><b>5</b> BURST</div>
+        <div class="slot" data-slot="6"><b>6</b> DMR</div>
       </div>
     </div>
 
@@ -124,23 +127,30 @@
   <div id="menu-main" class="screen">
     <div class="panel">
       <div class="logo">
-        <span class="logo-kicker">ARENA // FPS // v0.1.0</span>
+        <span class="logo-kicker">ARENA // FPS // v0.3.0</span>
         <h1>FIRST&nbsp;GUN&nbsp;GAME</h1>
         <div class="logo-rule"></div>
       </div>
       <p class="blurb">
         A gray-box arena shooter. Endless waves, four hostile classes,
-        three weapons. Built with vanilla JavaScript and three.js —
+        six weapons with aim-down-sights, and five maps — including a
+        dev firing range. Built with vanilla JavaScript and three.js,
         no engine, no build step.
       </p>
+      <div class="menu-block">
+        <div class="menu-label">SELECT MAP</div>
+        <div id="map-select" class="map-select"></div>
+      </div>
+
       <button id="btn-start" class="btn primary">DEPLOY</button>
       <div class="controls-grid">
         <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</div>
         <div><kbd>Mouse</kbd> Look / fire</div>
+        <div><kbd>RMB</kbd> Aim down sights</div>
         <div><kbd>Space</kbd> Jump</div>
         <div><kbd>Shift</kbd> Sprint</div>
         <div><kbd>R</kbd> Reload</div>
-        <div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Weapons</div>
+        <div><kbd>1</kbd>–<kbd>6</kbd> Weapons</div>
         <div><kbd>Wheel</kbd> Cycle weapon</div>
         <div><kbd>Esc</kbd> Pause</div>
       </div>
@@ -151,6 +161,10 @@
       <div class="settings-row">
         <label for="set-vol">Volume <b id="set-vol-value">70%</b></label>
         <input id="set-vol" type="range" min="0" max="100" value="70">
+      </div>
+      <div class="settings-row">
+        <label for="set-smooth">View smoothing (softer camera)</label>
+        <input id="set-smooth" type="checkbox" checked>
       </div>
       <div class="footnote">
         Click DEPLOY, then click the screen to lock your mouse.
@@ -184,6 +198,15 @@
 
   <!-- Pointer-lock nudge (shown when the browser releases the cursor) -->
   <div id="click-to-lock" class="hidden">CLICK TO CAPTURE MOUSE</div>
+
+  <!-- Dev range panel -->
+  <div id="dev-panel" class="hidden">
+    <div class="dev-title">DEV RANGE</div>
+    <div class="dev-row"><span>DAMAGE DEALT</span><b id="dev-damage">0</b></div>
+    <div class="dev-row"><span>GOD [G]</span><b id="dev-god-state">ON</b></div>
+    <div class="dev-row"><span>INF AMMO [B]</span><b id="dev-ammo-state">ON</b></div>
+    <div class="dev-hints">[H] heal · [J] dummy · [K] enemy · [L] clear · [M] next map</div>
+  </div>
 
   <!-- Fatal error surface -->
   <div id="fatal" class="hidden"><pre></pre></div>

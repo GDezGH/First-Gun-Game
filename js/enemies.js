@@ -246,6 +246,12 @@ export class EnemyManager {
    */
   damage(enemy, amount, head, point, dir) {
     if (!enemy.alive) return false;
+    // Passive dummies absorb infinite damage but never die, for damage testing.
+    if (enemy.type.passive) {
+      enemy.health = Math.max(1, enemy.health - amount);
+      enemy.hitFlash = 0.12;
+      return false;
+    }
     enemy.health -= amount;
     enemy.hitFlash = 0.12;
     if (enemy.state === 'spawn') { /* still allowed to be shot */ }
@@ -318,6 +324,14 @@ export class EnemyManager {
           e.group.scale.setScalar(1);
           e.eyeMat.emissiveIntensity = 2.2;
         }
+        continue;
+      }
+
+      // ---------- passive targets (dev dummies): idle, no AI -----------
+      if (e.type.passive) {
+        e.group.position.y = e.pos.y + Math.sin(now * 1.5) * 0.04;
+        if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
+        e.syncHitVolumes();
         continue;
       }
 

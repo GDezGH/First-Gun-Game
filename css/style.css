@@ -585,3 +585,44 @@ input[type="range"] {
   border-radius: 50%;
   background: rgba(10,10,10,0.9);
 }
+
+/* ---- Map selector ---- */
+.menu-block { margin: 6px 0 4px; }
+.map-select {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  margin-top: 8px;
+}
+.map-card {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  text-align: left; cursor: pointer;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px; padding: 9px 11px; color: #cdd4dd;
+  transition: 0.14s; display: flex; flex-direction: column; gap: 2px;
+}
+.map-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
+.map-card.active { border-color: var(--accent); background: rgba(255,140,26,0.12); color: #fff; }
+.map-card b { font-size: 0.95rem; letter-spacing: 0.5px; font-weight: 700; }
+.map-card span { font-size: 0.72rem; opacity: 0.7; }
+
+/* ---- Dev range panel ---- */
+#dev-panel {
+  position: absolute; top: 78px; left: 18px; z-index: 8;
+  background: rgba(8, 14, 10, 0.86);
+  border: 1px solid rgba(61, 255, 122, 0.4);
+  border-radius: 10px; padding: 10px 12px; min-width: 190px;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.5);
+}
+#dev-panel .dev-title {
+  font-size: 0.8rem; letter-spacing: 2px; color: #3dff7a;
+  font-weight: 800; margin-bottom: 6px;
+}
+#dev-panel .dev-row {
+  display: flex; justify-content: space-between; gap: 14px;
+  font-size: 0.8rem; color: #b9c6bb; margin: 2px 0;
+}
+#dev-panel .dev-row b { color: #fff; font-variant-numeric: tabular-nums; }
+#dev-panel .dev-hints {
+  margin-top: 7px; font-size: 0.66rem; color: #7f917f; line-height: 1.5;
+  border-top: 1px solid rgba(61,255,122,0.18); padding-top: 6px;
+}

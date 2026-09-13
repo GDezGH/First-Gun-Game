@@ -15,9 +15,9 @@
  */
 
 import * as THREE from './three.js';
-import { GAME, WEAPONS, PICKUPS } from './config.js';
+import { GAME, WEAPONS, PICKUPS, ENEMY_TYPES } from './config.js';
 import { audio } from './audio.js';
-import { buildWorld } from './world.js';
+import { buildWorld, MAPS } from './world.js';
 import { Player } from './player.js';
 import { WeaponManager } from './weapons.js';
 import { Effects } from './effects.js';
@@ -83,7 +83,7 @@ function boot() {
   scene.add(camera);
 
   const BASE_FOV = 78;
-  const world = buildWorld(scene);
+  let world = buildWorld(scene, 'arena');
   const effects = new Effects(scene);
   const enemies = new EnemyManager(scene);
   const pickups = new PickupManager(scene);
@@ -99,10 +99,14 @@ function boot() {
   const settings = loadSettings();
   input.sensitivity = settings.sensitivity;
   audio.setVolume(settings.volume);
+  GAME.VIEW.smoothing = settings.smoothing ? 0.6 : 0;
 
   // --- run state --------------------------------------------------------
   const state = {
     mode: 'menu',              // menu | playing | paused | over
+    mapId: 'arena',
+    devMode: false,
+    devDamage: 0,
     wave: 0,
     score: 0,
     kills: 0,
@@ -223,6 +227,13 @@ function boot() {
     saveSettings({ volume: v });
   });
 
+  const smoothBox = document.getElementById('set-smooth');
+  smoothBox.checked = settings.smoothing;
+  smoothBox.addEventListener('change', () => {
+    GAME.VIEW.smoothing = smoothBox.checked ? 0.6 : 0;
+    saveSettings({ smoothing: smoothBox.checked });
+  });
+
   renderBestScore();
 
   // =====================================================================
@@ -236,8 +247,11 @@ function boot() {
     effects.clear();
     hud.resetTransient();
 
-    player.reset();
+    loadMap(state.mapId);
+    player.reset(world.spawn);
     weapons.reset();
+    player.godMode = false;
+    weapons.infiniteAmmo = false;
 
     state.mode = 'playing';
     state.wave = 0;
@@ -249,6 +263,8 @@ function boot() {
     state.intermission = 3.0;       // short grace period before wave 1
     state.wantFire = false;
     state.triggerHeld = false;
+
+    if (state.devMode) initDev(); else showDevPanel(false);
 
     showScreen(null);
     hud.show();
@@ -273,6 +289,9 @@ function boot() {
 
   function quitToMenu() {
     state.mode = 'menu';
+    player.godMode = false;
+    weapons.infiniteAmmo = false;
+    showDevPanel(false);
     enemies.clear();
     pickups.clear();
     effects.clear();
@@ -307,6 +326,85 @@ function boot() {
     `;
     showScreen('over');
   }
+
+  // =====================================================================
+  // Maps + dev tools
+  // =====================================================================
+
+  function loadMap(id) {
+    world.dispose();
+    world = buildWorld(scene, id);
+    player.world = world;
+    weapons.world = world;
+    state.mapId = id;
+    state.devMode = id === 'dev';
+    enemies.clear();
+    pickups.clear();
+    effects.clear();
+    updateMapButtons();
+  }
+
+  function cycleMap() {
+    const i = MAPS.findIndex((m) => m.id === state.mapId);
+    const next = MAPS[(i + 1) % MAPS.length].id;
+    loadMap(next);
+    if (state.devMode) initDev();
+    hud.banner(MAPS.find((m) => m.id === next).name, 'MAP LOADED');
+  }
+
+  const mapSelect = document.getElementById('map-select');
+  function updateMapButtons() {
+    for (const el of mapSelect.children) {
+      el.classList.toggle('active', el.dataset.map === state.mapId);
+    }
+  }
+  MAPS.forEach((m) => {
+    const b = document.createElement('button');
+    b.className = 'map-card';
+    b.dataset.map = m.id;
+    b.innerHTML = `<b>${m.name}</b><span>${m.desc}</span>`;
+    b.addEventListener('click', () => { state.mapId = m.id; updateMapButtons(); });
+    mapSelect.appendChild(b);
+  });
+  updateMapButtons();
+
+  const devPanel = document.getElementById('dev-panel');
+  const devDamageEl = document.getElementById('dev-damage');
+  const devGodEl = document.getElementById('dev-god-state');
+  const devAmmoEl = document.getElementById('dev-ammo-state');
+  function showDevPanel(on) { devPanel.classList.toggle('hidden', !on); }
+  function updateDevPanel() {
+    devGodEl.textContent = player.godMode ? 'ON' : 'off';
+    devAmmoEl.textContent = weapons.infiniteAmmo ? 'ON' : 'off';
+    devDamageEl.textContent = Math.round(state.devDamage);
+  }
+
+  function initDev() {
+    player.godMode = true;
+    weapons.infiniteAmmo = true;
+    state.devDamage = 0;
+    const xs = [-8, -4, 0, 4, 8];
+    for (const z of [-12, -20]) {
+      for (const x of xs) enemies.spawn(ENEMY_TYPES.dummy, new THREE.Vector3(x, 0, z), 1);
+    }
+    showDevPanel(true);
+    updateDevPanel();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (state.mode !== 'playing' || !state.devMode) return;
+    switch (e.code) {
+      case 'KeyG': player.godMode = !player.godMode; break;
+      case 'KeyB': weapons.infiniteAmmo = !weapons.infiniteAmmo; break;
+      case 'KeyH': player.heal(1000); break;
+      case 'KeyJ': enemies.spawn(ENEMY_TYPES.dummy, new THREE.Vector3((Math.random() * 2 - 1) * 10, 0, -14), 1); break;
+      case 'KeyK': enemies.spawn(pickEnemyType(5), new THREE.Vector3((Math.random() * 2 - 1) * 14, 0, -14), 5); break;
+      case 'KeyL': enemies.clear(); break;
+      case 'KeyM': cycleMap(); break;
+      default: return;
+    }
+    updateDevPanel();
+  });
 
   // =====================================================================
   // Simulation step (fixed timestep)
@@ -359,8 +457,8 @@ function boot() {
       }
     }
 
-    // --- wave director -----------------------------------------------------------
-    updateWaves(dt);
+    // --- wave director (disabled in the dev range) -------------------------------
+    if (!state.devMode) updateWaves(dt);
 
     effects.update(dt, camera);
   }
@@ -368,6 +466,10 @@ function boot() {
   /** Translate a fire result into HUD feedback and score. */
   function handleFireResult(result) {
     if (!result.fired) return;
+    if (state.devMode) {
+      for (const h of result.hits) state.devDamage += h.damage;
+      devDamageEl.textContent = Math.round(state.devDamage);
+    }
 
     for (const h of result.hits) {
       hud.damageNumber(camera, h.point, h.damage, h.head);
@@ -485,6 +587,9 @@ function boot() {
       else if (weapons.current.mag === 0 && weapons.current.reserve === 0) hud.prompt('OUT OF AMMO — SWITCH WEAPON');
       else if (weapons.current.mag === 0) hud.prompt('PRESS R TO RELOAD');
       else hud.prompt(null);
+
+      // View is written per rendered frame, not per sim tick.
+      player.applyCamera(dt);
     } else if (state.mode === 'menu') {
       // Slow cinematic drift behind the main menu.
       weapons.rig.visible = false;
@@ -516,9 +621,9 @@ function boot() {
   //   __fgg.state.score += 9999
   // ---------------------------------------------------------------------
   window.__fgg = {
-    state, scene, camera, renderer, world, player, weapons,
+    state, scene, camera, renderer, get world() { return world; }, player, weapons,
     enemies, pickups, effects, hud, input,
-    startRun, pause, resume, quitToMenu, gameOver, step,
+    startRun, pause, resume, quitToMenu, gameOver, step, loadMap, cycleMap, initDev, MAPS,
   };
 }
 
@@ -538,6 +643,7 @@ function loadSettings() {
   return {
     sensitivity: typeof stored.sensitivity === 'number' ? stored.sensitivity : 1,
     volume: typeof stored.volume === 'number' ? stored.volume : 0.7,
+    smoothing: typeof stored.smoothing === 'boolean' ? stored.smoothing : true,
   };
 }
 

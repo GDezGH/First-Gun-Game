@@ -44,6 +44,16 @@ export const GAME = {
   /** Sensitivity is multiplied by this when converting mouse deltas to radians. */
   BASE_MOUSE_SENSITIVITY: 0.0022,
 
+  /** View-feel tuning. Smoothing eases the camera toward the raw aim. */
+  VIEW: {
+    /** 0 = raw 1:1 mouse, >0 eases the view (recommended 0.6 for softness). */
+    smoothing: 0.6,
+    /** How quickly the smoothed view catches up (1/s). Higher = snappier. */
+    smoothRate: 30,
+    /** Head-bob amplitude multiplier (0 disables). */
+    bobScale: 1.0,
+  },
+
   WAVE: {
     /** Seconds of breathing room between waves. */
     INTERMISSION: 6.0,
@@ -345,6 +355,23 @@ export const ENEMY_TYPES = {
     height: 1.82,
     score: GAME.SCORE.SNIPER,
     spawnWeight: 2,
+  },
+  /** Dev-range target: never moves, never fires, never dies. For testing damage. */
+  dummy: {
+    id: 'dummy',
+    label: 'DUMMY',
+    health: 1e9,
+    speed: 0,
+    damage: 0,
+    fireInterval: 9999,
+    accuracy: 0,
+    preferredRange: 0,
+    bodyColor: 0x8a8f98,
+    eyeColor: 0xffd24a,
+    height: 1.75,
+    score: 0,
+    spawnWeight: 0,
+    passive: true,
   },
 };
 

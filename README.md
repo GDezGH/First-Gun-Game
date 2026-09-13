@@ -4,7 +4,7 @@ A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](http
 
 ![gameplay](docs/screenshot-gameplay.png)
 
-> **Status: v0.2.0 — ADS, six weapons, detailed 3D gun models, browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
+> **Status: v0.3.0 — five themed maps, a dev firing range, smoother camera, browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
 
 ---
 
@@ -31,14 +31,34 @@ Change the port with `PORT=3000 node server.js`.
 | `Space` | Jump |
 | `Shift` | Sprint |
 | `R` | Reload |
-| `1` `2` `3` | Rifle / Sidearm / Breacher |
+| `1`–`6` | Select weapon (Rifle / Sidearm / Breacher / SMG / Burst / DMR) |
 | Mouse wheel | Cycle weapon |
 | `Esc` | Pause |
 | Right mouse (hold) | Aim down sights |
 
 Click **DEPLOY**, then click the game once to capture the mouse.
 
+**Dev Range hotkeys** (only on the `DEV RANGE` map): `G` god mode · `B` infinite ammo ·
+`H` heal · `J` spawn dummy · `K` spawn enemy · `L` clear · `M` next map.
+
 ---
+
+## What's new in v0.3.0
+
+- **Five maps**, each a distinct theme (sky, fog, lighting, palette) plus its own layout —
+  pick one on the main menu before deploying:
+  `BLACKSITE ARENA` (dusk yard), `MOLTEN FOUNDRY` (hard sun, container stacks),
+  `GLACIER LINE` (bright cold light, ice spires, raised shelves),
+  `NEON DISTRICT` (night city, tight lanes, coloured practicals) and `DEV RANGE`.
+- **Dev Range** — a firing range for testing: distance lanes, cover, and a row of passive
+  **damage dummies** that absorb unlimited damage without dying. Dev mode turns on god mode
+  and infinite ammo by default, tracks total damage dealt, and exposes hotkeys to spawn
+  dummies/enemies, heal, clear, and hop between maps.
+- **Smoother camera** — the rendered view now eases toward your raw aim with a
+  frame-rate-independent damper (toggle **View smoothing** in the menu), so fast flicks feel
+  controlled instead of jittery. Head-bob and recoil shake are applied at render time.
+- **Per-map theming engine** — `buildWorld(scene, mapId)` composes a theme + layout into a
+  disposable group, so maps swap cleanly without leaking GPU resources.
 
 ## What's in v0.2.0
 
@@ -66,7 +86,7 @@ Click **DEPLOY**, then click the game once to capture the mouse.
 - **Pooled effects** — tracers, sparks, blood, shell casings, bullet holes, impact rings.
 - **Damage direction indicators**, screen shake, hit flash, low-health pulse.
 - **Fixed-timestep physics** so movement feels identical at 30 fps and 240 fps.
-- **Gray-box arena** — centre platform with four pillars, corner bunkers, mid-field walls, seeded crate scatter.
+- **Gray-box arenas** — centre platform with four pillars, corner bunkers, mid-field walls and seeded crate scatter, re-themed per map.
 
 ---
 
@@ -152,7 +172,9 @@ node server.js &     # in another terminal
 npm test             # 43 assertions
 ```
 
-As of v0.1.0 the suite reports **43 passed, 0 failed**.
+The suite reports **55 passed, 0 failed** (movement, collision, all six weapons and fire
+modes, ADS, hit detection, waves, pickups, death/restart, the five maps, camera smoothing
+and the dev range).
 
 Screenshots from the suite: [docs/screenshot-menu.png](docs/screenshot-menu.png),
 [docs/screenshot-gameplay.png](docs/screenshot-gameplay.png).
