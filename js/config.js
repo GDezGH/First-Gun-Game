@@ -49,7 +49,7 @@ export const GAME = {
     /** 0 = raw 1:1 mouse, >0 eases the view (recommended 0.6 for softness). */
     smoothing: 0.6,
     /** How quickly the smoothed view catches up (1/s). Higher = snappier. */
-    smoothRate: 30,
+    smoothRate: 36,
     /** Head-bob amplitude multiplier (0 disables). */
     bobScale: 1.0,
   },

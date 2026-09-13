@@ -4,7 +4,7 @@ A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](http
 
 ![gameplay](docs/screenshot-gameplay.png)
 
-> **Status: v0.3.0 — five themed maps, a dev firing range, smoother camera, browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
+> **Status: v0.4.0 — seven themed maps, fuller dev toolbox (noclip / slow-mo), per-map accent theming, browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
 
 ---
 
@@ -42,6 +42,19 @@ Click **DEPLOY**, then click the game once to capture the mouse.
 `H` heal · `J` spawn dummy · `K` spawn enemy · `L` clear · `M` next map.
 
 ---
+
+## What's new in v0.4.0
+
+- **Two more maps** — `DUNE OUTPOST` (blazing sun, sand haze, rock arches, stepped mesas) and
+  `SKYLINE` (night rooftops joined by thin bridges, teal/violet practicals). Seven maps total.
+- **More dev tools** — on the dev range: `N` noclip (free flight) and `T` slow-motion (x0.3),
+  both shown live on the dev panel alongside god / infinite-ammo / damage tally.
+- **Per-map accent theming** — each map sets the UI accent colour, so the HUD, reticle and menus
+  re-tint to match the world you're in.
+- **Visual pass** — gradient title, animated menu entrance, angled sci-fi panel corners, scanline
+  texture, glowing primary buttons and active weapon slots.
+- **Snappier-but-smooth camera** — raised view catch-up rate and a wider sensitivity range
+  (up to 4.0x) so fast turns feel responsive without jitter.
 
 ## What's new in v0.3.0
 
@@ -172,7 +185,7 @@ node server.js &     # in another terminal
 npm test             # 43 assertions
 ```
 
-The suite reports **55 passed, 0 failed** (movement, collision, all six weapons and fire
+The suite reports **56 passed, 0 failed** (movement, collision, all six weapons and fire
 modes, ADS, hit detection, waves, pickups, death/restart, the five maps, camera smoothing
 and the dev range).
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>First Gun Game — v0.3.0</title>
+<title>First Gun Game — v0.4.0</title>
 <meta name="description" content="A small arena FPS built with vanilla JavaScript and three.js.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230a0c0f'/><rect x='3' y='7' width='10' height='3' fill='%23ff8c1a'/><rect x='9' y='4' width='3' height='3' fill='%23ff8c1a'/></svg>">
 <link rel="stylesheet" href="./css/style.css">
@@ -127,13 +127,13 @@
   <div id="menu-main" class="screen">
     <div class="panel">
       <div class="logo">
-        <span class="logo-kicker">ARENA // FPS // v0.3.0</span>
+        <span class="logo-kicker">ARENA // FPS // v0.4.0</span>
         <h1>FIRST&nbsp;GUN&nbsp;GAME</h1>
         <div class="logo-rule"></div>
       </div>
       <p class="blurb">
         A gray-box arena shooter. Endless waves, four hostile classes,
-        six weapons with aim-down-sights, and five maps — including a
+        six weapons with aim-down-sights, and seven maps — including a
         dev firing range. Built with vanilla JavaScript and three.js,
         no engine, no build step.
       </p>
@@ -156,7 +156,7 @@
       </div>
       <div class="settings-row">
         <label for="set-sens">Mouse sensitivity <b id="set-sens-value">1.00</b></label>
-        <input id="set-sens" type="range" min="20" max="300" value="100">
+        <input id="set-sens" type="range" min="20" max="400" value="100">
       </div>
       <div class="settings-row">
         <label for="set-vol">Volume <b id="set-vol-value">70%</b></label>
@@ -205,6 +205,8 @@
     <div class="dev-row"><span>DAMAGE DEALT</span><b id="dev-damage">0</b></div>
     <div class="dev-row"><span>GOD [G]</span><b id="dev-god-state">ON</b></div>
     <div class="dev-row"><span>INF AMMO [B]</span><b id="dev-ammo-state">ON</b></div>
+    <div class="dev-row"><span>NOCLIP [N]</span><b id="dev-noclip-state">off</b></div>
+    <div class="dev-row"><span>TIME [T]</span><b id="dev-time-state">x1</b></div>
     <div class="dev-hints">[H] heal · [J] dummy · [K] enemy · [L] clear · [M] next map</div>
   </div>
 

@@ -79,6 +79,7 @@ export class Player {
     this.recoilPitch = 0;
     this.recoilYaw = 0;
     this.godMode = false;
+    this.noclip = false;
     this.health = P.MAX_HEALTH;
     this.armor = 0;
     this.alive = true;
@@ -184,6 +185,17 @@ export class Player {
       (-cos * forward) + (-sin * strafe)
     );
     if (this._wish.lengthSq() > 0) this._wish.normalize();
+
+    // --- noclip (dev tool): free flight, no gravity / collision --------
+    if (this.noclip) {
+      const speed = P.SPRINT_SPEED * 1.7;
+      const up = (input.jump ? 1 : 0) - (input.crouch ? 1 : 0);
+      this.vel.set(this._wish.x * speed, up * speed, this._wish.z * speed);
+      this.pos.addScaledVector(this.vel, dt);
+      this.grounded = false;
+      this.travelSpeed = 0;
+      return this.alive;
+    }
 
     const wantSprint = input.sprint && forward > 0 && this.grounded;
     // Aiming down sights slows you (input.speedMult comes from the weapon).

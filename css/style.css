@@ -601,7 +601,7 @@ input[type="range"] {
   transition: 0.14s; display: flex; flex-direction: column; gap: 2px;
 }
 .map-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
-.map-card.active { border-color: var(--accent); background: rgba(255,140,26,0.12); color: #fff; }
+.map-card.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); color: #fff; }
 .map-card b { font-size: 0.95rem; letter-spacing: 0.5px; font-weight: 700; }
 .map-card span { font-size: 0.72rem; opacity: 0.7; }
 
@@ -626,3 +626,57 @@ input[type="range"] {
   margin-top: 7px; font-size: 0.66rem; color: #7f917f; line-height: 1.5;
   border-top: 1px solid rgba(61,255,122,0.18); padding-top: 6px;
 }
+
+/* ================================================================
+   v0.4.0 visual polish
+   ================================================================ */
+
+/* Gradient, glowing title */
+h1 {
+  background: linear-gradient(180deg, #ffffff 0%, var(--accent) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 0 34px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Menu entrance */
+.screen .panel { animation: panel-in 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Angled sci-fi panel corners */
+.panel { clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+
+/* Subtle scanline texture over menus */
+.screen::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+/* Primary button glow + sweep */
+.btn.primary {
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+  transition: box-shadow 0.18s, background 0.12s, transform 0.06s;
+}
+.btn.primary:hover { box-shadow: 0 6px 26px color-mix(in srgb, var(--accent) 45%, transparent); }
+
+/* Map cards: accent edge on the left, lift on hover */
+.map-card { border-left: 3px solid transparent; }
+.map-card.active { border-left-color: var(--accent); }
+.map-card b { color: inherit; }
+
+/* HUD vitals + weapon panels: angled corners */
+#vitals, #weapon-panel {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+#weapon-panel { clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 12px); }
+
+/* Active weapon slot glow */
+.slot.active { box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent); }

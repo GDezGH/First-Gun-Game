@@ -519,7 +519,7 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     }
     return res;
   });
-  check('all five maps build without error',
+  check('all seven maps build without error',
     Object.values(maps).every((v) => v === true), JSON.stringify(maps));
 
   const cam = await page.evaluate(() => {
@@ -556,6 +556,20 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
   check('dev god mode blocks incoming damage', dev.godBlocks, JSON.stringify(dev));
   check('dev infinite ammo does not consume rounds', dev.infAmmo && dev.ammoHeld, JSON.stringify(dev));
   check('dev dummies absorb damage but never die', dev.dummySurvives, JSON.stringify(dev));
+
+  const noclip = await page.evaluate(() => {
+    const g = window.__fgg; const t = window.__t;
+    t.reset();
+    g.player.noclip = true;
+    g.player.pos.set(0, 0, 0); g.player.vel.set(0, 0, 0);
+    g.input.keys.Space = true;
+    t.run(60);
+    g.input.keys.Space = false;
+    const y = g.player.pos.y;
+    g.player.noclip = false;
+    return y;
+  });
+  check('dev noclip lets the player fly (ignores gravity)', noclip > 1, `y=${noclip.toFixed(2)}`);
 
   // ---- hygiene ---------------------------------------------------------------
   check('no uncaught page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

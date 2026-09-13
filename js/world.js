@@ -23,8 +23,15 @@ export const MAPS = [
   { id: 'foundry', name: 'MOLTEN FOUNDRY',  desc: 'Hot sun, hard shadows, container stacks.' },
   { id: 'glacier', name: 'GLACIER LINE',    desc: 'Bright cold light, ice spires, high shelves.' },
   { id: 'neon',    name: 'NEON DISTRICT',   desc: 'Night city. Tight lanes, coloured light.' },
+  { id: 'dune',    name: 'DUNE OUTPOST',    desc: 'Blazing sun, sand haze, rock arches, mesas.' },
+  { id: 'skyline', name: 'SKYLINE',         desc: 'Night rooftops, bridges over the dark.' },
   { id: 'dev',     name: 'DEV RANGE',       desc: 'Firing range. Dummies, lanes, dev tools.' },
 ];
+
+const ACCENTS = {
+  arena: '#ff8c1a', foundry: '#ff4d00', glacier: '#66d9ff', neon: '#22e6ff',
+  dune: '#ffc040', skyline: '#a060ff', dev: '#3dff7a',
+};
 
 const THEMES = {
   arena: {
@@ -54,6 +61,20 @@ const THEMES = {
     hemi: [0x40406a, 0x101018, 0.8], sun: [0x8899ff, 1.2], sunPos: [30, 50, -20],
     fill: [0xff44aa, 0.5], trim: 0x22e6ff,
     floor: '#0c0c14', wall: '#12121e', crate: '#1a1a2a', crateTint: 0x4a4a6a,
+  },
+  dune: {
+    sky: ['#2a1a08', '#4a2f10', '#7a5220', '#b3823a', '#e0b060'],
+    fog: 0x8a6a3a, fogD: 0.008,
+    hemi: [0xffe0b0, 0x5a4020, 1.5], sun: [0xffcc80, 3.2], sunPos: [40, 45, 10],
+    fill: [0xffa060, 0.7], trim: 0xffc040,
+    floor: '#c2a06a', wall: '#a8865a', crate: '#8a6a40', crateTint: 0xc0a070,
+  },
+  skyline: {
+    sky: ['#04040c', '#0a0a1e', '#141433', '#22224d', '#333366'],
+    fog: 0x0a0a18, fogD: 0.011,
+    hemi: [0x5060a0, 0x0a0a14, 0.9], sun: [0x99aaff, 1.4], sunPos: [-25, 55, 25],
+    fill: [0x40e0d0, 0.5], trim: 0xa060ff,
+    floor: '#14141f', wall: '#1c1c2c', crate: '#242438', crateTint: 0x5a5a80,
   },
   dev: {
     sky: ['#0a0f0a', '#101810', '#182418', '#20301f', '#2a4026'],
@@ -110,6 +131,7 @@ function skyDome(colors) {
 
 export function buildWorld(scene, mapId = 'arena') {
   const theme = THEMES[mapId] || THEMES.arena;
+  const accent = ACCENTS[mapId] || '#ff8c1a';
   const R = GAME.ARENA_RADIUS;
 
   const colliders = [];
@@ -288,6 +310,48 @@ export function buildWorld(scene, mapId = 'arena') {
     box({ x: 0, y: 1.2, z: -18, w: 6, h: 2.4, d: 1.4, mat: MATS.wall });
     [-12, -8, -4, 4, 8, 12].forEach((x) =>
       box({ x, y: 0.5, z: 20, w: 1, h: 1, d: 1, mat: MATS.concrete }));
+  } else if (mapId === 'dune') {
+    perimeter();
+    spawn = new THREE.Vector3(0, 0, -14);
+    // Rock arches: twin pillars + lintel.
+    const arch = (x, z) => {
+      box({ x: x - 3, y: 2.2, z, w: 1.2, h: 4.4, d: 1.2, mat: MATS.crate });
+      box({ x: x + 3, y: 2.2, z, w: 1.2, h: 4.4, d: 1.2, mat: MATS.crate });
+      box({ x, y: 4.7, z, w: 7.6, h: 0.8, d: 1.6, mat: MATS.crate });
+    };
+    arch(-14, -4); arch(14, -4); arch(0, 16);
+    // Stepped mesas (terrain) in the corners.
+    const mesa = (x, z) => {
+      box({ x, y: 1.0, z, w: 10, h: 2.0, d: 10, mat: MATS.concrete });
+      box({ x, y: 2.8, z, w: 7, h: 1.6, d: 7, mat: MATS.concrete });
+      box({ x, y: 4.2, z, w: 4, h: 1.2, d: 4, mat: MATS.concrete });
+    };
+    mesa(-28, 24); mesa(28, 24); mesa(-28, -26); mesa(28, -26);
+    // Low dune ridges across the middle.
+    box({ x: 0, y: 0.6, z: -6, w: 30, h: 1.2, d: 2, mat: MATS.crate });
+    box({ x: 0, y: 0.6, z: 8, w: 26, h: 1.2, d: 2, mat: MATS.crate });
+    scatterCrates(0xd0e, 26, spawn);
+    ringSpawns();
+  } else if (mapId === 'skyline') {
+    perimeter();
+    spawn = new THREE.Vector3(0, 0, -14);
+    // Central tower + satellite rooftops linked by thin bridges.
+    box({ x: 0, y: 1.5, z: 0, w: 10, h: 3, d: 10, mat: MATS.concrete });
+    const sat = (x, z) => box({ x, y: 1.0, z, w: 8, h: 2, d: 8, mat: MATS.concrete });
+    sat(-20, -12); sat(20, -12); sat(-20, 14); sat(20, 14);
+    box({ x: -10.5, y: 2.2, z: -6, w: 12, h: 0.4, d: 2, mat: MATS.metal });
+    box({ x: 10.5, y: 2.2, z: -6, w: 12, h: 0.4, d: 2, mat: MATS.metal });
+    box({ x: -10.5, y: 2.2, z: 7, w: 12, h: 0.4, d: 2, mat: MATS.metal });
+    box({ x: 10.5, y: 2.2, z: 7, w: 12, h: 0.4, d: 2, mat: MATS.metal });
+    [[-20, -12], [20, -12], [-20, 14], [20, 14]].forEach(([x, z]) =>
+      box({ x, y: 2.2, z, w: 8, h: 0.25, d: 0.25, mat: MATS.trim, solid: false }));
+    [[-14, 0, 0x40e0d0], [14, 0, 0xa060ff], [0, 10, 0x40e0d0]].forEach(([x, z, col]) => {
+      const pl = new THREE.PointLight(col, 80, 45, 2);
+      pl.position.set(x, 6, z);
+      worldGroup.add(pl);
+    });
+    scatterCrates(0x517, 22, spawn);
+    ringSpawns();
   } else {
     // ---- default: arena ----
     perimeter();
@@ -327,6 +391,7 @@ export function buildWorld(scene, mapId = 'arena') {
   return {
     mapId,
     theme,
+    accent,
     colliders,
     solidMeshes,
     spawnPoints,

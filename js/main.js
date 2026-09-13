@@ -107,6 +107,7 @@ function boot() {
     mapId: 'arena',
     devMode: false,
     devDamage: 0,
+    timeScale: 1,
     wave: 0,
     score: 0,
     kills: 0,
@@ -252,6 +253,8 @@ function boot() {
     weapons.reset();
     player.godMode = false;
     weapons.infiniteAmmo = false;
+    player.noclip = false;
+    state.timeScale = 1;
 
     state.mode = 'playing';
     state.wave = 0;
@@ -291,6 +294,8 @@ function boot() {
     state.mode = 'menu';
     player.godMode = false;
     weapons.infiniteAmmo = false;
+    player.noclip = false;
+    state.timeScale = 1;
     showDevPanel(false);
     enemies.clear();
     pickups.clear();
@@ -338,6 +343,7 @@ function boot() {
     weapons.world = world;
     state.mapId = id;
     state.devMode = id === 'dev';
+    document.documentElement.style.setProperty('--accent', world.accent);
     enemies.clear();
     pickups.clear();
     effects.clear();
@@ -376,6 +382,8 @@ function boot() {
   function updateDevPanel() {
     devGodEl.textContent = player.godMode ? 'ON' : 'off';
     devAmmoEl.textContent = weapons.infiniteAmmo ? 'ON' : 'off';
+    document.getElementById('dev-noclip-state').textContent = player.noclip ? 'ON' : 'off';
+    document.getElementById('dev-time-state').textContent = state.timeScale === 1 ? 'x1' : 'x0.3';
     devDamageEl.textContent = Math.round(state.devDamage);
   }
 
@@ -401,6 +409,8 @@ function boot() {
       case 'KeyK': enemies.spawn(pickEnemyType(5), new THREE.Vector3((Math.random() * 2 - 1) * 14, 0, -14), 5); break;
       case 'KeyL': enemies.clear(); break;
       case 'KeyM': cycleMap(); break;
+      case 'KeyN': player.noclip = !player.noclip; break;
+      case 'KeyT': state.timeScale = state.timeScale === 1 ? 0.3 : 1; break;
       default: return;
     }
     updateDevPanel();
@@ -567,6 +577,7 @@ function boot() {
     dt = Math.min(dt, GAME.MAX_FRAME_TIME);
 
     if (state.mode === 'playing') {
+      dt *= state.timeScale;
       accumulator += dt;
       let guard = 0;
       while (accumulator >= GAME.FIXED_TIMESTEP && guard++ < 20) {
