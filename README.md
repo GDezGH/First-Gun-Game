@@ -4,7 +4,7 @@ A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](http
 
 ![gameplay](docs/screenshot-gameplay.png)
 
-> **Status: v0.5.1 — AAA UI + fabulous animated menu backdrop (orbiting arena, embers, synthwave grid), browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
+> **Status: v0.4.1 — AAA-style UI overhaul + fabulous animated menu backdrop (orbiting arena, embers, synthwave grid), browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
 
 ---
 
@@ -43,7 +43,10 @@ Click **DEPLOY**, then click the game once to capture the mouse.
 
 ---
 
-## What's new in v0.5.0
+## What's new in v0.4.1
+
+- **Fabulous animated menu backdrop** — orbiting arena camera, rising embers, aurora glow orbs,
+  synthwave perspective grid and drifting dust, all re-tinted by the selected map's accent.
 
 - **AAA-style main menu** — full-bleed layout with the live arena rendered behind it, a giant
   gradient title on a left rail, an angled DEPLOY button, and a two-column right panel holding
