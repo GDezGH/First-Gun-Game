@@ -94,9 +94,17 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     near(spawn.y, 0, 0.01) && spawn.grounded, `y=${spawn.y}`);
 
   const perf = await page.evaluate(() => new Promise((res) => {
-    let n = 0; const t0 = performance.now();
-    const tick = () => { n++; performance.now() - t0 < 2000 ? requestAnimationFrame(tick)
-      : res({ fps: n / 2, calls: window.__fgg.renderer.info.render.calls }); };
+    // Discard a short warm-up: under software GL the first frames pay a one-time
+    // shader-compilation stall that would skew the sample. We assert the renderer
+    // SUSTAINS frames, which still fails hard if rendering is actually broken.
+    let n = 0; let t0 = null; const warm = performance.now();
+    const tick = () => {
+      if (performance.now() - warm < 600) { requestAnimationFrame(tick); return; }
+      if (t0 === null) t0 = performance.now();
+      n++;
+      performance.now() - t0 < 2000 ? requestAnimationFrame(tick)
+        : res({ fps: n / 2, calls: window.__fgg.renderer.info.render.calls });
+    };
     requestAnimationFrame(tick);
   }));
   check('renderer produces frames', perf.fps > 2, `${perf.fps.toFixed(1)} fps (swiftshader)`);

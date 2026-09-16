@@ -85,6 +85,25 @@ function boot() {
   const BASE_FOV = 78;
   let world = buildWorld(scene, 'arena');
   const effects = new Effects(scene);
+
+  // Ambient rising embers give the menu backdrop depth and life.
+  const EMBERS = 220;
+  const emberGeo = new THREE.BufferGeometry();
+  const emberPos = new Float32Array(EMBERS * 3);
+  const emberSpd = new Float32Array(EMBERS);
+  for (let i = 0; i < EMBERS; i++) {
+    emberPos[i * 3] = (Math.random() * 2 - 1) * 42;
+    emberPos[i * 3 + 1] = Math.random() * 15;
+    emberPos[i * 3 + 2] = (Math.random() * 2 - 1) * 42;
+    emberSpd[i] = 0.4 + Math.random() * 1.1;
+  }
+  emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
+  const embers = new THREE.Points(emberGeo, new THREE.PointsMaterial({
+    color: 0xffa050, size: 0.14, transparent: true, opacity: 0.65,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }));
+  embers.visible = false;
+  scene.add(embers);
   const enemies = new EnemyManager(scene);
   const pickups = new PickupManager(scene);
   const player = new Player(camera, world);
@@ -603,14 +622,22 @@ function boot() {
       // View is written per rendered frame, not per sim tick.
       player.applyCamera(dt);
     } else if (state.mode === 'menu') {
-      // Slow cinematic drift behind the main menu.
+      // Cinematic slow orbit + rising embers behind the menu.
       weapons.rig.visible = false;
-      camera.position.set(0, 9, 34);
-      camera.lookAt(0, 2, 0);
-      camera.rotation.z = Math.sin(now * 0.00008) * 0.06;
+      const a = now * 0.000045;
+      camera.position.set(Math.sin(a) * 34, 9 + Math.sin(now * 0.0002) * 1.5, Math.cos(a) * 34);
+      camera.lookAt(0, 2.5, 0);
+      camera.rotation.z = Math.sin(now * 0.00008) * 0.05;
+      const arr = emberGeo.attributes.position.array;
+      for (let i = 0; i < EMBERS; i++) {
+        arr[i * 3 + 1] += emberSpd[i] * dt;
+        if (arr[i * 3 + 1] > 15) arr[i * 3 + 1] = 0;
+      }
+      emberGeo.attributes.position.needsUpdate = true;
       effects.update(dt, camera);
     }
 
+    embers.visible = state.mode === 'menu';
     if (state.mode !== 'menu' && !weapons.rig.visible) weapons.rig.visible = true;
 
     renderer.render(scene, camera);

@@ -798,3 +798,47 @@ h1 {
 #menu-pause .panel, #menu-over .panel {
   clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
 }
+
+/* ---- v0.5.1 fabulous menu backdrop ------------------------------- */
+.mm-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.mm-bg .orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(72px); mix-blend-mode: screen; opacity: 0.5;
+}
+.mm-bg .o1 { width: 540px; height: 540px; left: 6%; top: 10%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 62%, transparent), transparent 70%);
+  animation: orb-a 14s ease-in-out infinite alternate; }
+.mm-bg .o2 { width: 440px; height: 440px; right: 10%; top: 6%;
+  background: radial-gradient(circle, rgba(70,120,255,0.5), transparent 70%);
+  animation: orb-b 18s ease-in-out infinite alternate; }
+.mm-bg .o3 { width: 640px; height: 640px; right: 22%; bottom: -14%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%);
+  animation: orb-c 22s ease-in-out infinite alternate; }
+@keyframes orb-a { to { transform: translate(70px, 46px) scale(1.12); } }
+@keyframes orb-b { to { transform: translate(-80px, 56px) scale(1.16); } }
+@keyframes orb-c { to { transform: translate(-46px, -56px) scale(1.06); } }
+
+/* Synthwave perspective grid floor */
+.mm-grid {
+  position: absolute; left: -22%; right: -22%; bottom: -42%; height: 74%;
+  background:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 26%, transparent) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(0deg,  color-mix(in srgb, var(--accent) 26%, transparent) 0 1px, transparent 1px 44px);
+  transform: perspective(620px) rotateX(60deg);
+  transform-origin: top center;
+  -webkit-mask-image: linear-gradient(transparent, #000 34%);
+  mask-image: linear-gradient(transparent, #000 34%);
+  opacity: 0.45;
+  animation: grid-flow 5s linear infinite;
+}
+@keyframes grid-flow { to { background-position: 0 0, 0 44px; } }
+
+/* Drifting dust motes (parallax) */
+.mm-dust {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1.6px);
+  background-size: 240px 240px;
+  opacity: 0.16;
+  animation: dust-rise 34s linear infinite;
+}
+@keyframes dust-rise { to { background-position: 120px -480px; } }

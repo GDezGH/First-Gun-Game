@@ -4,7 +4,7 @@ A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](http
 
 ![gameplay](docs/screenshot-gameplay.png)
 
-> **Status: v0.5.0 — AAA-style UI overhaul (full-screen menu, scrolling compass, angular HUD), browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
+> **Status: v0.5.1 — AAA UI + fabulous animated menu backdrop (orbiting arena, embers, synthwave grid), browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
 
 ---
 
