@@ -52,6 +52,8 @@ export class HUD {
       banner: $('banner'),
       bannerTitle: $('banner-title'),
       bannerSub: $('banner-sub'),
+      compass: $('compass'),
+      compassStrip: $('compass-strip'),
     };
 
     // Cache the last written values so we skip redundant DOM writes.
@@ -59,6 +61,7 @@ export class HUD {
     this._screen = { x: 0, y: 0, z: 0 };
     this._pipCount = -1;
     this._slotCount = -1;
+    this._buildCompass();
     this._activeSlot = -1;
     this._vignetteCritical = false;
     this._hmTimer = null;
@@ -190,6 +193,29 @@ export class HUD {
   }
 
   /** Widen the reticle with movement, recoil and weapon spread. */
+  // ---- compass -------------------------------------------------------
+  _buildCompass() {
+    const PPD = 2;                       // pixels per degree
+    const frag = document.createDocumentFragment();
+    for (let deg = -180; deg <= 540; deg += 15) {
+      const card = { 0: 'N', 90: 'E', 180: 'S', 270: 'W', 360: 'N', 450: 'E', 540: 'S' }[deg];
+      const el = document.createElement('div');
+      if (card) { el.className = 'compass-item card'; el.textContent = card; }
+      else { el.className = 'compass-tick'; }
+      el.style.left = (deg + 180) * PPD + 'px';
+      frag.appendChild(el);
+    }
+    this.el.compassStrip.appendChild(frag);
+    this._ppd = PPD;
+  }
+
+  updateCompass(yaw) {
+    const H = ((-yaw * 180 / Math.PI) % 360 + 360) % 360;
+    const w = this.el.compass.clientWidth || 420;
+    this.el.compassStrip.style.transform =
+      `translateX(${(w / 2 - (H + 180) * this._ppd).toFixed(1)}px)`;
+  }
+
   updateReticle(player, weapons) {
     const def = weapons.def;
     const flatSpeed = Math.hypot(player.vel.x, player.vel.z);

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>First Gun Game — v0.4.0</title>
+<title>First Gun Game — v0.5.0</title>
 <meta name="description" content="A small arena FPS built with vanilla JavaScript and three.js.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%230a0c0f'/><rect x='3' y='7' width='10' height='3' fill='%23ff8c1a'/><rect x='9' y='4' width='3' height='3' fill='%23ff8c1a'/></svg>">
 <link rel="stylesheet" href="./css/style.css">
@@ -20,6 +20,12 @@
        HEADS-UP DISPLAY  (hidden until a run starts)
        ============================================================ -->
   <div id="hud" class="hidden">
+
+    <!-- Compass -->
+    <div id="compass" aria-hidden="true">
+      <div id="compass-strip"></div>
+      <div class="compass-marker"></div>
+    </div>
 
     <!-- Reticle -->
     <div id="crosshair" aria-hidden="true">
@@ -125,12 +131,58 @@
 
   <!-- Main menu -->
   <div id="menu-main" class="screen">
-    <div class="panel">
-      <div class="logo">
-        <span class="logo-kicker">ARENA // FPS // v0.4.0</span>
-        <h1>FIRST&nbsp;GUN&nbsp;GAME</h1>
-        <div class="logo-rule"></div>
-      </div>
+    <div class="mm-frame">
+      <aside class="mm-left">
+        <div class="mm-kicker">ARENA // FPS // v0.5.0</div>
+        <h1 class="mm-title">FIRST<br>GUN<br>GAME</h1>
+        <div class="mm-tag">GRAY-BOX ARENA SHOOTER</div>
+        <p class="blurb">
+          Endless waves · four hostile classes · six weapons with
+          aim-down-sights · seven maps, including a dev firing range.
+        </p>
+        <button id="btn-start" class="btn primary mm-deploy">DEPLOY ▸</button>
+        <div class="footnote mm-meta">
+          <span id="best-score"></span>
+          <span class="mm-hint">CLICK DEPLOY, THEN CLICK TO LOCK MOUSE</span>
+        </div>
+      </aside>
+
+      <section class="mm-right">
+        <div class="menu-block">
+          <div class="menu-label">SELECT MAP</div>
+          <div id="map-select" class="map-select"></div>
+        </div>
+
+        <div class="mm-cols">
+          <div class="mm-settings">
+            <div class="menu-label">OPTIONS</div>
+            <div class="settings-row">
+              <label for="set-sens">Mouse sensitivity <b id="set-sens-value">1.00</b></label>
+              <input id="set-sens" type="range" min="20" max="400" value="100">
+            </div>
+            <div class="settings-row">
+              <label for="set-vol">Volume <b id="set-vol-value">70%</b></label>
+              <input id="set-vol" type="range" min="0" max="100" value="70">
+            </div>
+            <div class="settings-row">
+              <label for="set-smooth">View smoothing (softer camera)</label>
+              <input id="set-smooth" type="checkbox" checked>
+            </div>
+          </div>
+          <div class="controls-grid">
+            <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</div>
+            <div><kbd>Mouse</kbd> Look / fire</div>
+            <div><kbd>RMB</kbd> Aim down sights</div>
+            <div><kbd>Space</kbd> Jump</div>
+            <div><kbd>Shift</kbd> Sprint</div>
+            <div><kbd>R</kbd> Reload</div>
+            <div><kbd>1</kbd>–<kbd>6</kbd> Weapons</div>
+            <div><kbd>Esc</kbd> Pause</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
       <p class="blurb">
         A gray-box arena shooter. Endless waves, four hostile classes,
         six weapons with aim-down-sights, and seven maps — including a

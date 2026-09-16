@@ -592,6 +592,7 @@ function boot() {
       hud.updateStats(state.score, state.kills, weapons.accuracy);
       hud.updateReticle(player, weapons);
       hud.updateScope(weapons);
+      hud.updateCompass(player.yaw);
 
       // Context-sensitive prompts.
       if (weapons.isReloading) hud.prompt('RELOADING…');

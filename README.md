@@ -4,7 +4,7 @@ A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](http
 
 ![gameplay](docs/screenshot-gameplay.png)
 
-> **Status: v0.4.0 — seven themed maps, fuller dev toolbox (noclip / slow-mo), per-map accent theming, browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
+> **Status: v0.5.0 — AAA-style UI overhaul (full-screen menu, scrolling compass, angular HUD), browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
 
 ---
 
@@ -42,6 +42,19 @@ Click **DEPLOY**, then click the game once to capture the mouse.
 `H` heal · `J` spawn dummy · `K` spawn enemy · `L` clear · `M` next map.
 
 ---
+
+## What's new in v0.5.0
+
+- **AAA-style main menu** — full-bleed layout with the live arena rendered behind it, a giant
+  gradient title on a left rail, an angled DEPLOY button, and a two-column right panel holding
+  the map selector, options and controls. Staggered slide-in animation.
+- **Scrolling compass** — a masked cardinal strip (N/E/S/W + ticks) at the top of the HUD that
+  tracks your heading in real time.
+- **Modern angular HUD** — wave panel moved top-left, vitals and weapon readouts in clipped,
+  frosted corner panels with glowing health bar and a bigger ammo counter; skewed weapon slots.
+- **Restyled pause / game-over** — diagonally-clipped panels, red "YOU DIED", two-column stat grid.
+
+See `docs/ui-menu.png`, `docs/ui-hud.png`, `docs/ui-pause.png`, `docs/ui-over.png`.
 
 ## What's new in v0.4.0
 
