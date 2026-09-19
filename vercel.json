@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "echo 'static site - no dependencies'",
-  "buildCommand": "mkdir -p out && cp index.html out/ && cp -r css js vendor out/",
-  "outputDirectory": "out",
+  "buildCommand": null,
+  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
