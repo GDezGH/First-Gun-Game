@@ -1,5 +1,6 @@
 # First Gun Game
 
+A small game I make with AI 100% and ideas from me during my pleisure time, hope u guys enjoy!!!
 A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](https://threejs.org) — **no game engine, no build step, no asset files**. Clone it, run one command, play.
 
 ![gameplay](docs/screenshot-gameplay.png)
