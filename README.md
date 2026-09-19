@@ -21,6 +21,19 @@ That's it. No `npm install` — the project has zero dependencies. A tiny static
 
 Change the port with `PORT=3000 node server.js`.
 
+### Deploy to Vercel (free public hosting)
+
+The game is a fully static site, so it deploys to Vercel with zero build steps:
+
+1. Push this repo to GitHub (already done) and make it **Public**.
+2. On [vercel.com](https://vercel.com) → **Add New… → Project** → import the repo.
+3. Vercel reads `vercel.json`: no install, no build — it just serves the static files.
+   (Framework preset can stay **Other**.)
+4. Deploy. You get a public `https://….vercel.app` URL you can share.
+
+`vercel.json` deliberately skips `npm install`/build so Vercel never touches the
+optional test-only dependency (puppeteer) — the site is pure HTML/JS/CSS.
+
 ## Controls
 
 | Input | Action |
