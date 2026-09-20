@@ -223,6 +223,10 @@ export class WeaponManager {
     this.recoilZ = 0;
     this.recoilRot = 0;
     this.reloadPose = 0;
+    this.reloadTilt = 0;
+    this.reloadRoll = 0;
+    this.reloadRack = 0;
+    this.lean = 0;
     this.swayX = 0;
     this.swayY = 0;
     this.bob = 0;
@@ -503,10 +507,17 @@ export class WeaponManager {
 
     if (this.reloadTimer > 0) {
       const total = def.reloadTime;
-      const t = 1 - this.reloadTimer / total;
-      this.reloadPose = Math.sin(Math.min(1, Math.max(0, t)) * Math.PI) * (0.9 + total * 0.1);
+      const tc = Math.min(1, Math.max(0, 1 - this.reloadTimer / total));
+      this.reloadPose = Math.sin(tc * Math.PI) * (0.9 + total * 0.1);
+      // Keyframed reload: tilt down, twist the mag out/in, then rack the slide.
+      this.reloadTilt = Math.sin(tc * Math.PI) * 0.5;
+      this.reloadRoll = Math.sin(tc * Math.PI * 2) * 0.35;
+      this.reloadRack = tc > 0.82 ? Math.sin((tc - 0.82) / 0.18 * Math.PI) * 0.13 : 0;
     } else {
       this.reloadPose = Math.max(0, this.reloadPose - dt * 6);
+      this.reloadTilt = Math.max(0, this.reloadTilt - dt * 4);
+      this.reloadRoll = Math.max(0, this.reloadRoll - dt * 4);
+      this.reloadRack = Math.max(0, this.reloadRack - dt * 4);
     }
 
     const dx = player.yaw - this.lastAimX;
@@ -519,9 +530,11 @@ export class WeaponManager {
     const flatSpeed = Math.hypot(player.vel.x, player.vel.z);
     if (player.grounded && flatSpeed > 0.6) this.bob += dt * (9 + 5 * (player.sprintBlend || 0));
     const bobAmt = player.grounded ? Math.min(flatSpeed / 8.6, 1) : 0;
+    const strafe = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    this.lean += (strafe - this.lean) * Math.min(1, dt * 8);
 
     const switchDip = this.switchTimer > 0 ? Math.sin((1 - this.switchTimer / 0.42) * Math.PI) * 0.28 : 0;
-    const sprinting = input.sprint && input.forward && player.grounded;
+    const sprinting = (player.sprintBlend || 0) > 0.5 && player.grounded;
     this._sprintPose += ((sprinting ? 1 : 0) - this._sprintPose) * Math.min(1, dt * 8);
     const sp = this._sprintPose;
 
@@ -535,15 +548,15 @@ export class WeaponManager {
 
     this.rig.position.set(
       ax + this.swayX * (1 - this.ads * 0.7) + Math.cos(this.bob) * 0.012 * bobAmt * (1 - this.ads)
-        + this.reloadPose * 0.03 + sp * 0.06,
+        + this.reloadPose * 0.03 + sp * 0.06 + this.lean * 0.02 * bobAmt,
       ay + this.swayY * (1 - this.ads * 0.7) + Math.sin(this.bob * 2) * 0.014 * bobAmt * (1 - this.ads)
-        - this.reloadPose * 0.16 - switchDip - sp * 0.09,
-      az + this.recoilZ * 0.55 * (1 - this.ads * 0.4) + this.reloadPose * 0.05 + sp * 0.1
+        - this.reloadPose * 0.16 - this.reloadTilt * 0.05 - switchDip - sp * 0.09,
+      az + this.recoilZ * 0.55 * (1 - this.ads * 0.4) + this.reloadPose * 0.05 + sp * 0.1 + this.reloadRack
     );
     this.rig.rotation.set(
-      this.recoilRot * 0.5 + this.reloadPose * 0.55 + sp * 0.22,
-      this.swayX * 2.2 * (1 - this.ads) - this.reloadPose * 0.18 + sp * 0.55,
-      this.swayY * 1.4 * (1 - this.ads) + this.reloadPose * 0.3 + sp * 0.2
+      this.recoilRot * 0.5 + this.reloadPose * 0.55 + this.reloadTilt * 0.5 + sp * 0.22,
+      this.swayX * 2.2 * (1 - this.ads) - this.reloadPose * 0.18 + sp * 0.55 + this.lean * 0.05,
+      this.swayY * 1.4 * (1 - this.ads) + this.reloadPose * 0.3 + this.reloadRoll + this.lean * 0.12 * bobAmt + sp * 0.2
     );
   }
 

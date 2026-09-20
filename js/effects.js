@@ -150,6 +150,29 @@ export class Effects {
         })
       ),
     }));
+
+    // --- smoke puffs (muzzle smoke, trails, impact dust) --------------
+    const smokeGeo = new THREE.SphereGeometry(0.3, 6, 6);
+    this.smoke = new Pool(scene, 64, () => ({
+      active: false, life: 0, maxLife: 0, grow: 1,
+      vel: new THREE.Vector3(),
+      object: new THREE.Mesh(smokeGeo, new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0, depthWrite: false, fog: false })),
+    }));
+  }
+
+  /** Soft expanding smoke puff. */
+  smokePuff(pos, dir, scale = 1, color = 0x8a8a8a) {
+    const s = this.smoke.next();
+    s.active = true;
+    s.life = s.maxLife = 0.7 + Math.random() * 0.5;
+    s.grow = (1.5 + Math.random()) * scale;
+    s.object.visible = true;
+    s.object.material.color.setHex(color);
+    s.object.material.opacity = 0.5;
+    s.object.position.copy(pos);
+    s.object.scale.setScalar(0.4 * scale);
+    s.vel.set((Math.random() - 0.5) * 0.8, 0.7 + Math.random() * 0.6, (Math.random() - 0.5) * 0.8);
+    if (dir) s.vel.addScaledVector(dir, 1.1);
   }
 
   // ------------------------------------------------------------------
@@ -179,13 +202,13 @@ export class Effects {
   /** Bright spark burst where a bullet hit the world. */
   impact(point, normal) {
     const n = normal || UP;
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 12; i++) {
       const p = this.particles.next();
       p.active = true;
       p.life = p.maxLife = 0.28 + Math.random() * 0.25;
       p.gravity = 14;
       p.object.visible = true;
-      p.object.material.color.setHex(i % 3 === 0 ? 0xfff0c0 : 0xff9a3c);
+      p.object.material.color.setHex(i % 4 === 0 ? 0xffffff : (i % 2 === 0 ? 0xfff0c0 : 0xff7a1c));
       p.object.position.copy(point);
       p.vel.copy(n).multiplyScalar(1.5 + Math.random() * 2.5);
       p.vel.x += (Math.random() - 0.5) * 3.5;
@@ -214,6 +237,9 @@ export class Effects {
     h.object.position.copy(point).addScaledVector(n, 0.014);
     _q.setFromUnitVectors(UP, n);
     h.object.quaternion.copy(_q);
+
+    // Impact dust / smoke.
+    this.smokePuff(point, n, 1.1, 0x5a5a5a);
   }
 
   /** Dark red burst for hitting flesh. */
@@ -246,6 +272,12 @@ export class Effects {
     this.flashLight.visible = true;
     this.flashLight.position.copy(position);
     this.flashLight.intensity = 44 * scale;
+
+    // Smoke trail belching from the muzzle.
+    for (let i = 0; i < 3; i++) {
+      _mid.copy(position).addScaledVector(dir, 0.12 + i * 0.3);
+      this.smokePuff(_mid, dir, (0.6 + i * 0.3) * scale, 0x6e6e6e);
+    }
   }
 
   /** Eject a spent casing to the shooter's right. */
@@ -362,6 +394,18 @@ export class Effects {
       h.object.material.opacity = Math.min(0.9, h.life / 3);
     }
 
+    // Smoke
+    for (const s of this.smoke.items) {
+      if (!s.active) continue;
+      s.life -= dt;
+      if (s.life <= 0) { s.active = false; s.object.visible = false; continue; }
+      const k = s.life / s.maxLife;
+      s.object.position.addScaledVector(s.vel, dt);
+      s.vel.multiplyScalar(1 - Math.min(1, dt * 1.6));
+      s.object.scale.setScalar((1 - k) * s.grow + 0.3);
+      s.object.material.opacity = k * 0.42;
+    }
+
     // Muzzle flash
     if (this.flashLife > 0) {
       this.flashLife -= dt;
@@ -377,7 +421,7 @@ export class Effects {
 
   /** Clear every effect (used when a run restarts). */
   clear() {
-    for (const group of [this.tracers, this.particles, this.casings, this.rings, this.holes]) {
+    for (const group of [this.tracers, this.particles, this.casings, this.rings, this.holes, this.smoke]) {
       for (const it of group.items) { it.active = false; it.object.visible = false; }
     }
     this.flashLife = 0;

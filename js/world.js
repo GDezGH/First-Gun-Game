@@ -265,6 +265,12 @@ export function buildWorld(scene, mapId = 'arena') {
     box({ x: 0, y: 7.2, z: 0, w: 16, h: 0.7, d: 16, mat: MATS.metal });
     box({ x: 0, y: 1.4, z: -24, w: 26, h: 2.8, d: 1.4, mat: MATS.wall });
     box({ x: 0, y: 1.4, z: 24, w: 26, h: 2.8, d: 1.4, mat: MATS.wall });
+    // UNIQUE OBSTACLE: molten lava pools across the floor
+    const lavaMat = new THREE.MeshBasicMaterial({ color: 0xff5a00, transparent: true, opacity: 0.92 });
+    [[-16, 18], [16, 18], [-22, -18], [22, -18], [0, 26], [-26, 4], [26, 4]].forEach(([x, z]) => {
+      const m = new THREE.Mesh(new THREE.CircleGeometry(3.2, 20), lavaMat);
+      m.rotation.x = -Math.PI / 2; m.position.set(x, 0.05, z); worldGroup.add(m);
+    });
     scatterCrates(0xf00d, 30, spawn);
     ringSpawns();
   } else if (mapId === 'glacier') {
@@ -279,6 +285,13 @@ export function buildWorld(scene, mapId = 'arena') {
     box({ x: 28, y: 2.0, z: 0, w: 6, h: 1.2, d: 20, mat: MATS.concrete });
     box({ x: 0, y: 1.2, z: -8, w: 18, h: 2.4, d: 1.4, mat: MATS.wall });
     box({ x: 0, y: 1.2, z: 8, w: 18, h: 2.4, d: 1.4, mat: MATS.wall });
+    // UNIQUE OBSTACLE: translucent ice shards
+    const iceMat = new THREE.MeshStandardMaterial({ color: 0x9fe8ff, emissive: 0x2aa8ff, emissiveIntensity: 0.7, roughness: 0.12, metalness: 0.1, transparent: true, opacity: 0.85 });
+    [[-10, 14, 4], [10, 14, 5], [-18, -16, 3.5], [18, -16, 4.5], [0, -22, 3], [24, 6, 3.5], [-24, 6, 3.5]].forEach(([x, z, h]) => {
+      const m = new THREE.Mesh(new THREE.ConeGeometry(1.2, h, 5), iceMat);
+      m.position.set(x, h / 2, z); m.castShadow = true; worldGroup.add(m);
+      colliders.push({ min: new THREE.Vector3(x - 1.1, -4, z - 1.1), max: new THREE.Vector3(x + 1.1, h, z + 1.1) });
+    });
     scatterCrates(0x1ce, 26, spawn);
     ringSpawns();
   } else if (mapId === 'neon') {
@@ -294,6 +307,11 @@ export function buildWorld(scene, mapId = 'arena') {
       worldGroup.add(p);
     });
     box({ x: 0, y: 1.0, z: 0, w: 8, h: 2, d: 8, mat: MATS.concrete });
+    // UNIQUE OBSTACLE: holographic billboards floating over the blocks
+    [[-16, -8, 0x22e6ff], [16, -8, 0xff44aa], [-16, 12, 0xff44aa], [16, 12, 0x22e6ff]].forEach(([x, z, col]) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(9, 4.5), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+      m.position.set(x, 9, z); m.lookAt(0, 9, 0); worldGroup.add(m);
+    });
     scatterCrates(0x0e0, 22, spawn);
     ringSpawns();
   } else if (mapId === 'dev') {
@@ -330,6 +348,11 @@ export function buildWorld(scene, mapId = 'arena') {
     // Low dune ridges across the middle.
     box({ x: 0, y: 0.6, z: -6, w: 30, h: 1.2, d: 2, mat: MATS.crate });
     box({ x: 0, y: 0.6, z: 8, w: 26, h: 1.2, d: 2, mat: MATS.crate });
+    // UNIQUE OBSTACLE: sandstone monoliths
+    [[-8, 22, 7], [8, 22, 6], [-26, 0, 8], [26, 0, 7], [0, -26, 6]].forEach(([x, z, h]) => {
+      box({ x, y: h / 2, z, w: 1.8, h, d: 1.8, mat: MATS.crate });
+      box({ x, y: h + 0.3, z, w: 1.1, h: 0.6, d: 1.1, mat: MATS.trim, solid: false });
+    });
     scatterCrates(0xd0e, 26, spawn);
     ringSpawns();
   } else if (mapId === 'skyline') {
@@ -349,6 +372,12 @@ export function buildWorld(scene, mapId = 'arena') {
       const pl = new THREE.PointLight(col, 80, 45, 2);
       pl.position.set(x, 6, z);
       worldGroup.add(pl);
+    });
+    // UNIQUE OBSTACLE: antenna masts with red beacons
+    [[-20, -12], [20, -12], [-20, 14], [20, 14]].forEach(([x, z]) => {
+      box({ x, y: 5, z, w: 0.4, h: 8, d: 0.4, mat: MATS.metal });
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff3355 }));
+      b.position.set(x, 9.2, z); worldGroup.add(b);
     });
     scatterCrates(0x517, 22, spawn);
     ringSpawns();
@@ -381,6 +410,14 @@ export function buildWorld(scene, mapId = 'arena') {
     box({ x: 20, y: 1.6, z: 0, w: 1.4, h: 3.2, d: 20, mat: MATS.wall });
     [[-9, -20], [9, -20], [-9, 20], [9, 20]].forEach(([x, z]) =>
       box({ x, y: 0.6, z, w: 2.2, h: 1.2, d: 2.2, mat: MATS.crate }));
+    // UNIQUE OBSTACLE: energy pylon ring around the centre
+    const pylonMat = new THREE.MeshStandardMaterial({ color: 0x2b3138, emissive: 0xff8c1a, emissiveIntensity: 1.4, roughness: 0.4, metalness: 0.6 });
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + Math.PI / 4, rr = 12, x = Math.cos(a) * rr, z = Math.sin(a) * rr;
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 6, 6), pylonMat);
+      m.position.set(x, 3, z); m.castShadow = true; worldGroup.add(m);
+      colliders.push({ min: new THREE.Vector3(x - 0.8, -4, z - 0.8), max: new THREE.Vector3(x + 0.8, 6, z + 0.8) });
+    }
     scatterCrates(0xc0ffee, 46, spawn);
     const p = new THREE.PointLight(0xffb870, 110, 48, 2);
     p.position.set(0, 7.0, 0);

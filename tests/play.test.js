@@ -191,12 +191,12 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     // may have run off the platform by then.
     let peak = 0;
     for (let i = 0; i < 180; i++) {
-      t.run(1, { KeyW: true, ShiftLeft: true });
+      t.run(1, { KeyW: true });
       peak = Math.max(peak, Math.hypot(g.player.vel.x, g.player.vel.z));
     }
     return peak;
   });
-  check('Shift sprints at SPRINT_SPEED', near(sprint, 8.6, 0.05), `peak ${fmt(sprint)} m/s`);
+  check('auto-sprint reaches SPRINT_SPEED', near(sprint, 8.6, 0.05), `peak ${fmt(sprint)} m/s`);
 
   // Regression: sprinting used to cancel the instant you left the ground,
   // because wantSprint required `grounded`. Air control then braked you back
@@ -206,12 +206,12 @@ const fmt = (v, d = 2) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(d) 
     const g = window.__fgg;
     g.player.pos.set(0, 1.2, 0);
     g.player.grounded = true;
-    for (let i = 0; i < 90; i++) t.run(1, { KeyW: true, ShiftLeft: true });
+    for (let i = 0; i < 90; i++) t.run(1, { KeyW: true });
     const beforeJump = Math.hypot(g.player.vel.x, g.player.vel.z);
-    t.run(2, { KeyW: true, ShiftLeft: true, Space: true });
+    t.run(2, { KeyW: true, Space: true });
     let airSpeed = 0, ticks = 0;
     for (let i = 0; i < 40 && !g.player.grounded; i++) {
-      t.run(1, { KeyW: true, ShiftLeft: true });
+      t.run(1, { KeyW: true });
       airSpeed = Math.hypot(g.player.vel.x, g.player.vel.z);
       ticks++;
     }

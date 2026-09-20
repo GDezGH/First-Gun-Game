@@ -141,9 +141,9 @@ export class Input {
       left: !!(k.KeyA || k.ArrowLeft),
       right: !!(k.KeyD || k.ArrowRight),
       jump: !!k.Space,
-      sprint: !!(k.ShiftLeft || k.ShiftRight),
+      sprint: false, // auto-sprint now; Shift repurposed to crawl/slide
       crouch: !!k.ControlLeft,
-      crawl: !!k.KeyC,
+      crawl: !!(k.ShiftLeft || k.ShiftRight),
     };
   }
 
