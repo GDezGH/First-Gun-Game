@@ -1,6 +1,7 @@
 # First Gun Game
 
-A small game I make with AI 100% and ideas from me during my pleisure time, hope u guys enjoy!!!
+A small game I make with **AI 100%** and ideas from me during my pleisure time, hope u guys enjoy!!!
+
 A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](https://threejs.org) — **no game engine, no build step, no asset files**. Clone it, run one command, play.
 
 ![gameplay](docs/screenshot-gameplay.png)
@@ -21,19 +22,6 @@ node server.js
 That's it. No `npm install` — the project has zero dependencies. A tiny static server (`server.js`) is included because ES modules cannot be loaded over `file://`.
 
 Change the port with `PORT=3000 node server.js`.
-
-### Deploy to Vercel (free public hosting)
-
-The game is a fully static site, so it deploys to Vercel with zero build steps:
-
-1. Push this repo to GitHub (already done) and make it **Public**.
-2. On [vercel.com](https://vercel.com) → **Add New… → Project** → import the repo.
-3. Vercel reads `vercel.json`: no install, no build — it just serves the static files.
-   (Framework preset can stay **Other**.)
-4. Deploy. You get a public `https://….vercel.app` URL you can share.
-
-`vercel.json` deliberately skips `npm install`/build so Vercel never touches the
-optional test-only dependency (puppeteer) — the site is pure HTML/JS/CSS.
 
 ## Controls
 
