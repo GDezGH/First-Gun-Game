@@ -245,7 +245,7 @@ export class Effects {
 
     this.flashLight.visible = true;
     this.flashLight.position.copy(position);
-    this.flashLight.intensity = 26 * scale;
+    this.flashLight.intensity = 44 * scale;
   }
 
   /** Eject a spent casing to the shooter's right. */
@@ -367,7 +367,7 @@ export class Effects {
       this.flashLife -= dt;
       const k = Math.max(0, this.flashLife / 0.055);
       this.flashMesh.material.opacity = k * 0.95;
-      this.flashLight.intensity = 26 * k;
+      this.flashLight.intensity = 44 * k;
       if (this.flashLife <= 0) {
         this.flashMesh.visible = false;
         this.flashLight.visible = false;

@@ -156,7 +156,7 @@ export function buildWorld(scene, mapId = 'arena') {
     concrete: new THREE.MeshStandardMaterial({ color: 0x4a5058, roughness: 0.85, metalness: 0.08 }),
     crate: new THREE.MeshStandardMaterial({ map: crateTex, color: theme.crateTint, roughness: 0.8, metalness: 0.15 }),
     metal: new THREE.MeshStandardMaterial({ color: 0x3b4148, roughness: 0.42, metalness: 0.75 }),
-    trim: new THREE.MeshStandardMaterial({ color: theme.trim, roughness: 0.4, metalness: 0.3, emissive: theme.trim, emissiveIntensity: 0.7 }),
+    trim: new THREE.MeshStandardMaterial({ color: theme.trim, roughness: 0.4, metalness: 0.3, emissive: theme.trim, emissiveIntensity: 1.5 }),
     lamp: new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffd9a0, emissiveIntensity: 2.4, roughness: 1 }),
   };
 

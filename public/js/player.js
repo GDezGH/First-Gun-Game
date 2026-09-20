@@ -32,6 +32,13 @@ export class Player {
     this.viewYaw = 0;
     this.viewPitch = 0;
     this.travelSpeed = 0;
+    this.stance = 'stand';
+    this.slideT = 0;
+    this.forwardT = 0;
+    this.sprintBlend = 0;
+    this.eyeCur = P.EYE_HEIGHT;
+    this.mods = { gravity: 1, friction: 1, speed: 1, jump: 1 };
+    this._prevCrawl = false;
 
     // Recoil is tracked separately from the player's aim so it can recover
     // smoothly without fighting mouse input.
@@ -76,6 +83,13 @@ export class Player {
     this.viewYaw = 0;
     this.viewPitch = 0;
     this.travelSpeed = 0;
+    this.stance = 'stand';
+    this.slideT = 0;
+    this.forwardT = 0;
+    this.sprintBlend = 0;
+    this.eyeCur = P.EYE_HEIGHT;
+    this.mods = { gravity: 1, friction: 1, speed: 1, jump: 1 };
+    this._prevCrawl = false;
     this.recoilPitch = 0;
     this.recoilYaw = 0;
     this.godMode = false;
@@ -95,10 +109,12 @@ export class Player {
     this.coyoteTime = 0.12;
   }
 
-  get eyeHeight() { return P.EYE_HEIGHT; }
+  get eyeHeight() { return this.eyeCur; }
+
+  setMods(m) { this.mods = Object.assign({ gravity: 1, friction: 1, speed: 1, jump: 1 }, m); }
 
   eyePosition(out = this._eye) {
-    return out.set(this.pos.x, this.pos.y + P.EYE_HEIGHT, this.pos.z);
+    return out.set(this.pos.x, this.pos.y + this.eyeCur, this.pos.z);
   }
 
   /** Current aim direction including recoil recovery offsets. */
@@ -194,12 +210,44 @@ export class Player {
       this.pos.addScaledVector(this.vel, dt);
       this.grounded = false;
       this.travelSpeed = 0;
+    this.stance = 'stand';
+    this.slideT = 0;
+    this.forwardT = 0;
+    this.sprintBlend = 0;
+    this.eyeCur = P.EYE_HEIGHT;
+    this.mods = { gravity: 1, friction: 1, speed: 1, jump: 1 };
+    this._prevCrawl = false;
       return this.alive;
     }
 
-    const wantSprint = input.sprint && forward > 0 && this.grounded;
-    // Aiming down sights slows you (input.speedMult comes from the weapon).
-    const targetSpeed = (wantSprint ? P.SPRINT_SPEED : P.WALK_SPEED) * (input.speedMult ?? 1);
+    // --- stance: crawl & slide (C) ----------------------------------
+    const crawlKey = !!input.crawl;
+    if (crawlKey && !this._prevCrawl) {
+      const sp = Math.hypot(this.vel.x, this.vel.z);
+      if (this.grounded && sp > 5.5) {
+        this.stance = 'crawl'; this.slideT = P.SLIDE_TIME;
+        const len = Math.max(sp, 0.001);
+        this.vel.x = (this.vel.x / len) * P.SLIDE_BOOST;
+        this.vel.z = (this.vel.z / len) * P.SLIDE_BOOST;
+      } else {
+        this.stance = this.stance === 'crawl' ? 'stand' : 'crawl';
+      }
+    }
+    this._prevCrawl = crawlKey;
+    if (this.slideT > 0) this.slideT -= dt;
+
+    // --- auto-sprint: builds while moving forward --------------------
+    if (forward > 0 && this.grounded && this.stance === 'stand') this.forwardT += dt;
+    else this.forwardT = 0;
+    const sprintTarget = this.forwardT > P.AUTO_SPRINT_DELAY ? 1 : 0;
+    this.sprintBlend += (sprintTarget - this.sprintBlend) * Math.min(1, dt * 4);
+
+    // --- target speed: stance + auto-sprint + map modifier -----------
+    let base;
+    if (this.slideT > 0) base = P.SLIDE_BOOST;
+    else if (this.stance === 'crawl') base = P.CRAWL_SPEED;
+    else base = P.WALK_SPEED + (P.SPRINT_SPEED - P.WALK_SPEED) * this.sprintBlend;
+    const targetSpeed = base * (input.speedMult ?? 1) * this.mods.speed;
 
     // --- accelerate / friction --------------------------------------
     // Airborne momentum: if we are already travelling faster than the
@@ -209,7 +257,7 @@ export class Player {
     const flatSpeed = Math.hypot(this.vel.x, this.vel.z);
     const desiredSpeed = (!this.grounded && flatSpeed > targetSpeed) ? flatSpeed : targetSpeed;
 
-    const accel = this.grounded ? P.ACCEL_GROUND : P.ACCEL_AIR;
+    const accel = this.slideT > 0 ? P.ACCEL_GROUND * 0.15 : (this.grounded ? P.ACCEL_GROUND : P.ACCEL_AIR);
     // NOTE: copy before scaling. multiplyScalar() mutates in place, and
     // _wish is read again below for the friction test.
     const desired = this._desired.copy(this._wish).multiplyScalar(desiredSpeed);
@@ -219,8 +267,8 @@ export class Player {
     this.vel.x += (desired.x - this.vel.x) * k;
     this.vel.z += (desired.z - this.vel.z) * k;
 
-    if (this.grounded && !hasInput) {
-      const drop = Math.max(this.vel.length(), P.WALK_SPEED) * P.FRICTION_GROUND * dt;
+    if (this.grounded && !hasInput && this.slideT <= 0) {
+      const drop = Math.max(this.vel.length(), P.WALK_SPEED) * P.FRICTION_GROUND * this.mods.friction * dt;
       const len = this.vel.length();
       if (len > 0) {
         const scale = Math.max(0, len - drop) / len;
@@ -228,18 +276,23 @@ export class Player {
         this.vel.z *= scale;
       }
     }
+    if (this.slideT > 0) {
+      const dec = Math.max(0, 1 - dt * 1.1);
+      this.vel.x *= dec; this.vel.z *= dec;
+    }
 
     // --- jump ---------------------------------------------------------
     this.coyoteTime = this.grounded ? 0.12 : Math.max(0, this.coyoteTime - dt);
     if (input.jump && this.coyoteTime > 0) {
-      this.vel.y = P.JUMP_VELOCITY;
+      this.vel.y = P.JUMP_VELOCITY * this.mods.jump;
+      this.stance = 'stand';
       this.grounded = false;
       this.coyoteTime = 0;
       audio.jump();
     }
 
     // --- gravity ------------------------------------------------------
-    this.vel.y -= GAME.GRAVITY * dt;
+    this.vel.y -= GAME.GRAVITY * this.mods.gravity * dt;
     if (this.vel.y < -60) this.vel.y = -60;
 
     // --- integrate + collide ------------------------------------------
@@ -249,6 +302,9 @@ export class Player {
     this.moveAxis('y', this.vel.y * dt);
     this.moveAxis('x', this.vel.x * dt);
     this.moveAxis('z', this.vel.z * dt);
+
+    const eyeTarget = this.stance === 'crawl' ? P.CRAWL_EYE : P.EYE_HEIGHT;
+    this.eyeCur += (eyeTarget - this.eyeCur) * Math.min(1, dt * 12);
 
     // Landing feedback.
     if (this.grounded && !this.wasGrounded) {
@@ -326,7 +382,7 @@ export class Player {
 
     cam.position.set(
       this.pos.x + Math.cos(this.viewYaw) * bobX,
-      this.pos.y + P.EYE_HEIGHT + bobY,
+      this.pos.y + this.eyeCur + bobY,
       this.pos.z - Math.sin(this.viewYaw) * bobX
     );
     cam.rotation.set(

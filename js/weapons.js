@@ -517,7 +517,7 @@ export class WeaponManager {
     this.swayY += (clamp(dy * 9, -0.04, 0.04) - this.swayY) * Math.min(1, dt * 9);
 
     const flatSpeed = Math.hypot(player.vel.x, player.vel.z);
-    if (player.grounded && flatSpeed > 0.6) this.bob += dt * (input.sprint ? 13 : 9);
+    if (player.grounded && flatSpeed > 0.6) this.bob += dt * (9 + 5 * (player.sprintBlend || 0));
     const bobAmt = player.grounded ? Math.min(flatSpeed / 8.6, 1) : 0;
 
     const switchDip = this.switchTimer > 0 ? Math.sin((1 - this.switchTimer / 0.42) * Math.PI) * 0.28 : 0;

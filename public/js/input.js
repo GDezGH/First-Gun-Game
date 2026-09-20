@@ -142,7 +142,8 @@ export class Input {
       right: !!(k.KeyD || k.ArrowRight),
       jump: !!k.Space,
       sprint: !!(k.ShiftLeft || k.ShiftRight),
-      crouch: !!(k.ControlLeft || k.KeyC),
+      crouch: !!k.ControlLeft,
+      crawl: !!k.KeyC,
     };
   }
 

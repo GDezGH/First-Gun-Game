@@ -36,6 +36,12 @@ export const GAME = {
     /** Health regeneration kicks in after this many seconds without damage. */
     REGEN_DELAY: 5.0,
     REGEN_RATE: 7.0,          // hp / second
+    // --- v0.6.0 movement: crawl / slide / auto-sprint ---
+    CRAWL_EYE: 0.95,          // eye height while crawling
+    CRAWL_SPEED: 2.6,
+    SLIDE_TIME: 0.55,
+    SLIDE_BOOST: 9.8,
+    AUTO_SPRINT_DELAY: 1.1,   // seconds of forward movement before sprint builds
     // Open lane south of the centre platform. (0,0) is INSIDE the platform
     // box, which used to eject the player onto its roof on spawn.
     SPAWN: { x: 0, z: -14 },
@@ -45,6 +51,16 @@ export const GAME = {
   BASE_MOUSE_SENSITIVITY: 0.0022,
 
   /** View-feel tuning. Smoothing eases the camera toward the raw aim. */
+  /** Per-map physics modifiers: each map plays differently. */
+  MAP_MODS: {
+    arena:  { gravity: 1,    friction: 1,    speed: 1,    jump: 1 },
+    foundry:{ gravity: 0.85, friction: 1,    speed: 1,    jump: 1.06 },
+    glacier:{ gravity: 1,    friction: 0.35, speed: 1,    jump: 1 },
+    neon:   { gravity: 1,    friction: 1,    speed: 1.15, jump: 1.08 },
+    dune:   { gravity: 1,    friction: 1.25, speed: 0.92, jump: 1 },
+    skyline:{ gravity: 0.8,  friction: 1,    speed: 1.05, jump: 1.1 },
+    dev:    { gravity: 1,    friction: 1,    speed: 1,    jump: 1 },
+  },
   VIEW: {
     /** 0 = raw 1:1 mouse, >0 eases the view (recommended 0.6 for softness). */
     smoothing: 0.6,

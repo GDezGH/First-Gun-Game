@@ -59,7 +59,7 @@ if (renderer) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.25;
+  renderer.toneMappingExposure = 1.4;
 
   canvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
@@ -363,6 +363,7 @@ function boot() {
     state.mapId = id;
     state.devMode = id === 'dev';
     document.documentElement.style.setProperty('--accent', world.accent);
+    player.setMods(GAME.MAP_MODS[id] || {});
     enemies.clear();
     pickups.clear();
     effects.clear();
