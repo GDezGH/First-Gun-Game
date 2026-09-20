@@ -5,7 +5,7 @@ A small arena FPS that runs in the browser. Vanilla JavaScript + [three.js](http
 
 ![gameplay](docs/screenshot-gameplay.png)
 
-> **Status: v0.4.1 — AAA-style UI overhaul + fabulous animated menu backdrop (orbiting arena, embers, synthwave grid), browser-verified.** See [Testing](#testing) and [Roadmap](#roadmap).
+> **Status: v0.6.0 — auto-sprint, crawl & slide, per-map physics, vibrant maps and punchier shooting VFX.** See [Testing](#testing) and [Roadmap](#roadmap).
 
 ---
 
@@ -54,6 +54,16 @@ Click **DEPLOY**, then click the game once to capture the mouse.
 
 **Dev Range hotkeys** (only on the `DEV RANGE` map): `G` god mode · `B` infinite ammo ·
 `H` heal · `J` spawn dummy · `K` spawn enemy · `L` clear · `M` next map.
+
+---
+
+## What's new in v0.6.0
+
+- **Auto-sprint** — sprint builds automatically after ~1s of moving forward; Shift is no longer needed.
+- **Crawl & slide** — `C` drops you into a crawl; tapping `C` while running triggers a momentum slide.
+- **Per-map physics** — each map plays differently (Foundry low gravity, Glacier slippery, Neon fast, Dune heavy, Skyline floaty).
+- **Vibrant maps** — stronger emissive trim and richer tone mapping for more colour, light and shade.
+- **Punchier shooting VFX** — brighter muzzle-flash lighting.
 
 ---
 

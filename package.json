@@ -1,6 +1,6 @@
 {
   "name": "first-gun-game",
-  "version": "0.4.1",
+  "version": "0.6.0",
   "description": "A small arena FPS built with vanilla JavaScript and three.js. No engine, no build step.",
   "type": "commonjs",
   "scripts": {
