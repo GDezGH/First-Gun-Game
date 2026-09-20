@@ -23,6 +23,8 @@ That's it. No `npm install` — the project has zero dependencies. A tiny static
 
 Change the port with `PORT=3000 node server.js`.
 
+**Or you can play it online [here](https://first-gun-game.vercel.app/)!**
+
 ## Controls
 
 | Input | Action |
